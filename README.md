@@ -32,6 +32,7 @@ Modifie `.env` :
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/ethio_videos"
 YOUTUBE_API_KEY="your_youtube_api_key"
 ADMIN_PASSWORD="change_me"
+AUTH_SECRET="generate_a_random_secret_of_at_least_32_characters"
 PUBLIC_SITE_URL="http://localhost:5173"
 ```
 
@@ -93,6 +94,10 @@ npm run dev
 
 Ce MVP utilise l'intégration YouTube officielle via iframe. Il ne télécharge pas les vidéos.
 
+L'admin utilise Auth.js avec un provider Credentials. `ADMIN_PASSWORD` reste le mot de passe
+admin du MVP, et `AUTH_SECRET` doit être une chaîne aléatoire d'au moins 32 caractères pour
+signer les sessions.
+
 Pour utiliser l'API YouTube Data v3 :
 1. Crée un projet dans Google Cloud.
 2. Active YouTube Data API v3.
@@ -101,7 +106,6 @@ Pour utiliser l'API YouTube Data v3 :
 
 ## Améliorations futures
 
-- Auth plus robuste avec Auth.js.
 - Import automatique depuis des chaînes YouTube.
 - Résumés IA.
 - Tags.
