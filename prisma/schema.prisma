@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Video {
+  id             String      @id @default(cuid())
+  youtubeVideoId String      @unique
+  slug           String      @unique
+  title          String
+  description    String?
+  summary        String?
+  thumbnailUrl   String?
+  duration       String?
+  viewCount      Int?
+  likeCount      Int?
+  commentCount   Int?
+  publishedAt    DateTime?
+  language       String?
+  status         VideoStatus @default(DRAFT)
+  isFeatured     Boolean     @default(false)
+
+  channelId      String?
+  channel        Channel?    @relation(fields: [channelId], references: [id], onDelete: SetNull)
+
+  categoryId     String?
+  category       Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([channelId])
+}
+
+model Channel {
+  id               String   @id @default(cuid())
+  youtubeChannelId String   @unique
+  slug             String   @unique
+  title            String
+  description      String?
+  thumbnailUrl     String?
+  subscriberCount  Int?
+  videoCount       Int?
+  status           ChannelStatus @default(ACTIVE)
+
+  videos           Video[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+
+  videos      Video[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VideoSuggestion {
+  id         String           @id @default(cuid())
+  youtubeUrl String
+  category  String?
+  language  String?
+  message   String?
+  email     String?
+  status    SuggestionStatus @default(PENDING)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  language  String?
+  createdAt DateTime @default(now())
+}
+
+enum VideoStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ChannelStatus {
+  ACTIVE
+  HIDDEN
+}
