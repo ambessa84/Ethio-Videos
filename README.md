@@ -58,6 +58,25 @@ npm run dev
 5. Choisis catégorie, langue, statut `PUBLISHED`.
 6. La vidéo apparaît sur la homepage.
 
+## Import automatique depuis les chaînes YouTube
+
+L'admin peut ajouter une chaîne à surveiller depuis `/admin/channels/new` avec son
+YouTube Channel ID. Le projet récupère l'uploads playlist ID via YouTube Data API,
+puis l'utilise pour importer les dernières vidéos sans passer par `search.list`.
+
+Depuis `/admin/channels`, clique sur `Import latest videos` pour importer les
+dernières vidéos d'une chaîne. Il est recommandé de commencer avec le statut par
+défaut `DRAFT`, puis de publier les vidéos après vérification.
+
+Pour tester le cron localement :
+
+```bash
+curl -H "Authorization: Bearer change_this_secret" http://localhost:5173/api/cron/import-youtube
+```
+
+L'endpoint cron peut être appelé par Vercel Cron, GitHub Actions ou un cron serveur.
+Configure `CRON_SECRET` dans l'environnement de production.
+
 ## Routes
 
 ### Public
@@ -87,6 +106,7 @@ npm run dev
 /admin/videos/[id]/edit
 /admin/categories
 /admin/channels
+/admin/channels/new
 /admin/suggestions
 ```
 
