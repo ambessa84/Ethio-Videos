@@ -40,20 +40,28 @@ model Video {
 }
 
 model Channel {
-  id               String   @id @default(cuid())
-  youtubeChannelId String   @unique
-  slug             String   @unique
-  title            String
-  description      String?
-  thumbnailUrl     String?
-  subscriberCount  Int?
-  videoCount       Int?
-  status           ChannelStatus @default(ACTIVE)
+  id                  String        @id @default(cuid())
+  youtubeChannelId    String        @unique
+  slug                String        @unique
+  title               String
+  description         String?
+  thumbnailUrl        String?
+  subscriberCount     Int?
+  videoCount          Int?
+  status              ChannelStatus @default(ACTIVE)
+  uploadsPlaylistId   String?
+  autoImportEnabled   Boolean       @default(false)
+  defaultLanguage     String?
+  defaultStatus       VideoStatus   @default(DRAFT)
+  lastImportedAt      DateTime?
 
-  videos           Video[]
+  defaultCategoryId   String?
+  defaultCategory     Category?     @relation(fields: [defaultCategoryId], references: [id], onDelete: SetNull)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  videos              Video[]
+
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 }
 
 model Category {
@@ -63,6 +71,7 @@ model Category {
   description String?
 
   videos      Video[]
+  channels    Channel[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
