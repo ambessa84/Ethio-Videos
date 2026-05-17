@@ -12,7 +12,10 @@
       <a href="/admin/categories">Categories</a>
       <a href="/admin/channels">Channels</a>
       <a href="/admin/suggestions">Suggestions</a>
-      <a href="/admin/logout">Logout</a>
+      <form method="POST" action="/admin/logout">
+        <input type="hidden" name="redirectTo" value="/admin/login" />
+        <button type="submit">Logout</button>
+      </form>
     </nav>
   </aside>
 

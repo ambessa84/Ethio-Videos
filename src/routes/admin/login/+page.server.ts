@@ -1,31 +1,36 @@
+import { AuthError } from '@auth/sveltekit';
 import { env } from '$env/dynamic/private';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
+import { signIn } from '../../../auth';
 
 export const actions = {
-  default: async ({ request, cookies }) => {
-    const formData = await request.formData();
-    const password = String(formData.get('password') ?? '');
-
+  default: async (event) => {
     if (!env.ADMIN_PASSWORD) {
       return fail(500, {
         message: 'ADMIN_PASSWORD is not configured.'
       });
     }
 
-    if (password !== env.ADMIN_PASSWORD) {
-      return fail(400, {
-        message: 'Incorrect password.'
+    if (!env.AUTH_SECRET) {
+      return fail(500, {
+        message: 'AUTH_SECRET is not configured.'
       });
     }
 
-    cookies.set('admin_session', 'true', {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7
-    });
+    try {
+      await signIn(event);
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return fail(400, {
+          message: 'Incorrect password.'
+        });
+      }
 
-    throw redirect(303, '/admin');
+      throw error;
+    }
+
+    return fail(500, {
+      message: 'Unable to start the admin session.'
+    });
   }
 };

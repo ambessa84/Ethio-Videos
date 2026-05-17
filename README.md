@@ -32,6 +32,7 @@ Modifie `.env` :
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/ethio_videos"
 YOUTUBE_API_KEY="your_youtube_api_key"
 ADMIN_PASSWORD="change_me"
+AUTH_SECRET="generate_a_random_secret_of_at_least_32_characters"
 PUBLIC_SITE_URL="http://localhost:5173"
 ```
 
@@ -56,6 +57,25 @@ npm run dev
 4. Colle une URL YouTube.
 5. Choisis catégorie, langue, statut `PUBLISHED`.
 6. La vidéo apparaît sur la homepage.
+
+## Import automatique depuis les chaînes YouTube
+
+L'admin peut ajouter une chaîne à surveiller depuis `/admin/channels/new` avec son
+YouTube Channel ID. Le projet récupère l'uploads playlist ID via YouTube Data API,
+puis l'utilise pour importer les dernières vidéos sans passer par `search.list`.
+
+Depuis `/admin/channels`, clique sur `Import latest videos` pour importer les
+dernières vidéos d'une chaîne. Il est recommandé de commencer avec le statut par
+défaut `DRAFT`, puis de publier les vidéos après vérification.
+
+Pour tester le cron localement :
+
+```bash
+curl -H "Authorization: Bearer change_this_secret" http://localhost:5173/api/cron/import-youtube
+```
+
+L'endpoint cron peut être appelé par Vercel Cron, GitHub Actions ou un cron serveur.
+Configure `CRON_SECRET` dans l'environnement de production.
 
 ## Routes
 
@@ -86,12 +106,17 @@ npm run dev
 /admin/videos/[id]/edit
 /admin/categories
 /admin/channels
+/admin/channels/new
 /admin/suggestions
 ```
 
 ## Remarques importantes
 
 Ce MVP utilise l'intégration YouTube officielle via iframe. Il ne télécharge pas les vidéos.
+
+L'admin utilise Auth.js avec un provider Credentials. `ADMIN_PASSWORD` reste le mot de passe
+admin du MVP, et `AUTH_SECRET` doit être une chaîne aléatoire d'au moins 32 caractères pour
+signer les sessions.
 
 Pour utiliser l'API YouTube Data v3 :
 1. Crée un projet dans Google Cloud.
@@ -101,7 +126,6 @@ Pour utiliser l'API YouTube Data v3 :
 
 ## Améliorations futures
 
-- Auth plus robuste avec Auth.js.
 - Import automatique depuis des chaînes YouTube.
 - Résumés IA.
 - Tags.

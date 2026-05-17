@@ -1,9 +1,12 @@
 import { redirect, type Handle } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
+import { handle as authenticationHandle } from './auth';
 
-export const handle: Handle = async ({ event, resolve }) => {
+const authorizationHandle: Handle = async ({ event, resolve }) => {
   const pathname = event.url.pathname;
 
-  event.locals.isAdmin = event.cookies.get('admin_session') === 'true';
+  const session = await event.locals.auth();
+  event.locals.isAdmin = Boolean(session?.user);
 
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     if (!event.locals.isAdmin) {
@@ -13,3 +16,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   return resolve(event);
 };
+
+export const handle: Handle = sequence(authenticationHandle, authorizationHandle);
