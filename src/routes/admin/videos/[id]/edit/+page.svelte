@@ -2,15 +2,30 @@
   let { data, form } = $props();
 
   let video = $derived(data.video);
+  let aiKeyPoints = $derived(parseJsonArray(video.aiKeyPoints));
+  let aiTags = $derived(parseJsonArray(video.aiTags));
+  let hasAiShortSummary = $derived(Boolean(video.aiShortSummary?.trim()));
+  let aiGeneratedAt = $derived(
+    video.aiGeneratedAt ? new Date(video.aiGeneratedAt).toLocaleString() : "-"
+  );
+
+  function parseJsonArray(value: string | null | undefined): string[] {
+    try {
+      const parsed = JSON.parse(value ?? "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
 </script>
 
 <h1>Edit video</h1>
 
 {#if form?.message}
-  <div class="alert">{form.message}</div>
+  <div class={form?.success ? "success" : "alert"}>{form.message}</div>
 {/if}
 
-{#if form?.success}
+{#if form?.success && !form?.message}
   <div class="success">Saved.</div>
 {/if}
 
@@ -113,3 +128,107 @@
     </form>
   </aside>
 </div>
+
+<section class="panel section">
+  <h2>AI Summary</h2>
+
+  <div class="grid" style="gap: 0.75rem">
+    <p>
+      <strong>Status:</strong>
+      {video.aiStatus}
+    </p>
+    <p>
+      <strong>Generated:</strong>
+      {aiGeneratedAt}
+    </p>
+    <p>
+      <strong>Needs human review:</strong>
+      {video.aiNeedsHumanReview ? "Yes" : "No"}
+    </p>
+    <p>
+      <strong>Confidence:</strong>
+      {video.aiConfidence ?? "-"}
+    </p>
+  </div>
+
+  {#if video.aiError}
+    <div class="alert">{video.aiError}</div>
+  {/if}
+
+  <div class="form">
+    <div class="form-row">
+      <span class="label">Short summary</span>
+      <p class="muted" style="white-space: pre-line">
+        {video.aiShortSummary || "Not generated yet."}
+      </p>
+    </div>
+
+    <div class="form-row">
+      <span class="label">Long summary</span>
+      <p class="muted" style="white-space: pre-line">
+        {video.aiLongSummary || "Not generated yet."}
+      </p>
+    </div>
+
+    <div class="form-row">
+      <span class="label">Key points</span>
+      {#if aiKeyPoints.length}
+        <ul>
+          {#each aiKeyPoints as point}
+            <li>{point}</li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="muted">No key points generated.</p>
+      {/if}
+    </div>
+
+    <div class="form-row">
+      <span class="label">Tags</span>
+      {#if aiTags.length}
+        <p>{aiTags.join(", ")}</p>
+      {:else}
+        <p class="muted">No tags generated.</p>
+      {/if}
+    </div>
+
+    <div class="form-row">
+      <span class="label">SEO title</span>
+      <p class="muted">{video.aiSeoTitle || "-"}</p>
+    </div>
+
+    <div class="form-row">
+      <span class="label">SEO description</span>
+      <p class="muted">{video.aiSeoDescription || "-"}</p>
+    </div>
+
+    <div class="form-row">
+      <span class="label">Detected language</span>
+      <p class="muted">{video.aiLanguage || "-"}</p>
+    </div>
+
+    <div class="form-row">
+      <span class="label">Suggested category</span>
+      <p class="muted">{video.aiCategorySuggestion || "-"}</p>
+    </div>
+  </div>
+
+  <form method="POST" action="?/generateAiSummary" class="form section">
+    <div class="form-row">
+      <label class="label" for="outputLanguage">Output language</label>
+      <select class="select" id="outputLanguage" name="outputLanguage">
+        <option value="fr">fr</option>
+        <option value="en">en</option>
+        <option value="am">am</option>
+      </select>
+    </div>
+
+    <button class="button" type="submit">Generate AI Summary</button>
+  </form>
+
+  <form method="POST" action="?/applyAiSummary" class="form">
+    <button class="button secondary" type="submit" disabled={!hasAiShortSummary}>
+      Copy AI short summary to public summary
+    </button>
+  </form>
+</section>

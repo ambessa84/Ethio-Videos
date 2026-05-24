@@ -24,6 +24,20 @@ model Video {
   status         VideoStatus @default(DRAFT)
   isFeatured     Boolean     @default(false)
 
+  aiShortSummary       String?
+  aiLongSummary        String?
+  aiKeyPoints          String?
+  aiTags               String?
+  aiSeoTitle           String?
+  aiSeoDescription     String?
+  aiLanguage           String?
+  aiCategorySuggestion String?
+  aiConfidence         Float?
+  aiNeedsHumanReview   Boolean         @default(true)
+  aiGeneratedAt        DateTime?
+  aiStatus             AiSummaryStatus @default(NOT_GENERATED)
+  aiError              String?
+
   channelId      String?
   channel        Channel?    @relation(fields: [channelId], references: [id], onDelete: SetNull)
 
@@ -101,6 +115,13 @@ enum VideoStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+enum AiSummaryStatus {
+  NOT_GENERATED
+  GENERATING
+  GENERATED
+  FAILED
 }
 
 enum SuggestionStatus {

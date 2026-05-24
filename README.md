@@ -31,8 +31,11 @@ Modifie `.env` :
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/ethio_videos"
 YOUTUBE_API_KEY="your_youtube_api_key"
+OPENAI_API_KEY="your_openai_api_key"
+OPENAI_MODEL="gpt-5.4-mini"
 ADMIN_PASSWORD="change_me"
 AUTH_SECRET="generate_a_random_secret_of_at_least_32_characters"
+CRON_SECRET="change_this_secret"
 PUBLIC_SITE_URL="http://localhost:5173"
 ```
 
@@ -76,6 +79,42 @@ curl -H "Authorization: Bearer change_this_secret" http://localhost:5173/api/cro
 
 L'endpoint cron peut être appelé par Vercel Cron, GitHub Actions ou un cron serveur.
 Configure `CRON_SECRET` dans l'environnement de production.
+
+## AI summaries
+
+La Phase 1 genere des resumes IA uniquement depuis les metadonnees YouTube deja
+stockees : titre, description, chaine, categorie, langue et date de publication.
+Elle n'utilise pas de transcription, ne telecharge pas les videos et ne recupere
+pas les captions YouTube.
+
+Ajoute la cle OpenAI dans `.env` :
+
+```env
+OPENAI_API_KEY="your_openai_api_key"
+OPENAI_MODEL="gpt-5.4-mini"
+```
+
+`OPENAI_MODEL` est optionnel. Si la variable est absente, le projet utilise
+`gpt-5.4-mini`.
+
+Apres avoir installe les dependances, lance la migration Prisma :
+
+```bash
+npx prisma migrate dev --name add_ai_summary_fields
+npx prisma generate
+```
+
+Flux admin :
+
+1. Va dans `/admin/videos/[id]/edit`.
+2. Clique sur `Generate AI Summary`.
+3. Verifie le resume court, le resume long, les points cles, les tags, les
+   champs SEO, la confiance et le flag de revue humaine.
+4. Clique sur `Copy AI short summary to public summary` pour copier le resume
+   court IA dans le champ public `summary`.
+
+La page publique affiche uniquement `summary`. Les champs `ai*` restent reserves
+a l'admin tant que le resume court n'est pas copie manuellement.
 
 ## Routes
 
