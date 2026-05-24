@@ -197,6 +197,7 @@ Contraintes editoriales :
 - Ne transforme pas des hypotheses en faits.
 - Ne dis pas "la video explique" si les donnees ne permettent pas de le savoir.
 - Utilise plutot "D'apres le titre et la description..." quand c'est pertinent.
+- En francais, traduis "cover" au sens musical par "reprise", pas par "cover".
 - Mets needsHumanReview a true si le sujet touche a la politique, religion, conflit, sante, ethnicite, crime, violence, accusations, conseil financier, breaking news, ou si les informations sont insuffisantes.
 
 JSON attendu :

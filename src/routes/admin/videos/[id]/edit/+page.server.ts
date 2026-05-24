@@ -79,6 +79,64 @@ export const actions = {
     }
   },
 
+  saveAiSummary: async ({ request, params }) => {
+    const formData = await request.formData();
+    const aiShortSummary = String(formData.get("aiShortSummary") ?? "").trim();
+    const aiLongSummary = String(formData.get("aiLongSummary") ?? "").trim();
+    const aiKeyPoints = String(formData.get("aiKeyPoints") ?? "")
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const aiTags = String(formData.get("aiTags") ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const aiSeoTitle = String(formData.get("aiSeoTitle") ?? "").trim();
+    const aiSeoDescription = String(
+      formData.get("aiSeoDescription") ?? "",
+    ).trim();
+    const aiLanguage = String(formData.get("aiLanguage") ?? "").trim();
+    const aiCategorySuggestion = String(
+      formData.get("aiCategorySuggestion") ?? "",
+    ).trim();
+    const aiConfidenceRaw = String(formData.get("aiConfidence") ?? "").trim();
+    const aiConfidence = aiConfidenceRaw ? Number(aiConfidenceRaw) : null;
+    const aiNeedsHumanReview = formData.get("aiNeedsHumanReview") === "on";
+
+    if (
+      aiConfidence !== null &&
+      (!Number.isFinite(aiConfidence) || aiConfidence < 0 || aiConfidence > 1)
+    ) {
+      return fail(400, {
+        message: "AI confidence must be a number between 0 and 1.",
+      });
+    }
+
+    await prisma.video.update({
+      where: { id: params.id },
+      data: {
+        aiShortSummary: aiShortSummary || null,
+        aiLongSummary: aiLongSummary || null,
+        aiKeyPoints: JSON.stringify(aiKeyPoints),
+        aiTags: JSON.stringify(aiTags),
+        aiSeoTitle: aiSeoTitle || null,
+        aiSeoDescription: aiSeoDescription || null,
+        aiLanguage: aiLanguage || null,
+        aiCategorySuggestion: aiCategorySuggestion || null,
+        aiConfidence,
+        aiNeedsHumanReview,
+        aiStatus:
+          aiShortSummary || aiLongSummary ? "GENERATED" : "NOT_GENERATED",
+        aiError: null,
+      },
+    });
+
+    return {
+      success: true,
+      message: "AI metadata saved.",
+    };
+  },
+
   applyAiSummary: async ({ params }) => {
     const video = await prisma.video.findUnique({
       where: { id: params.id },

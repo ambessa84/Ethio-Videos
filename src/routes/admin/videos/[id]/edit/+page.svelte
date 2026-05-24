@@ -4,6 +4,8 @@
   let video = $derived(data.video);
   let aiKeyPoints = $derived(parseJsonArray(video.aiKeyPoints));
   let aiTags = $derived(parseJsonArray(video.aiTags));
+  let aiKeyPointsText = $derived(aiKeyPoints.join("\n"));
+  let aiTagsText = $derived(aiTags.join(", "));
   let hasAiShortSummary = $derived(Boolean(video.aiShortSummary?.trim()));
   let aiGeneratedAt = $derived(
     video.aiGeneratedAt ? new Date(video.aiGeneratedAt).toLocaleString() : "-"
@@ -155,63 +157,119 @@
     <div class="alert">{video.aiError}</div>
   {/if}
 
-  <div class="form">
+  <form method="POST" action="?/saveAiSummary" class="form">
     <div class="form-row">
-      <span class="label">Short summary</span>
-      <p class="muted" style="white-space: pre-line">
-        {video.aiShortSummary || "Not generated yet."}
-      </p>
+      <label class="label" for="aiShortSummary">Short summary</label>
+      <textarea
+        class="textarea"
+        id="aiShortSummary"
+        name="aiShortSummary"
+        rows="4">{video.aiShortSummary || ""}</textarea
+      >
     </div>
 
     <div class="form-row">
-      <span class="label">Long summary</span>
-      <p class="muted" style="white-space: pre-line">
-        {video.aiLongSummary || "Not generated yet."}
-      </p>
+      <label class="label" for="aiLongSummary">Long summary</label>
+      <textarea
+        class="textarea"
+        id="aiLongSummary"
+        name="aiLongSummary"
+        rows="7">{video.aiLongSummary || ""}</textarea
+      >
     </div>
 
     <div class="form-row">
-      <span class="label">Key points</span>
-      {#if aiKeyPoints.length}
-        <ul>
-          {#each aiKeyPoints as point}
-            <li>{point}</li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="muted">No key points generated.</p>
-      {/if}
+      <label class="label" for="aiKeyPoints">Key points</label>
+      <textarea
+        class="textarea"
+        id="aiKeyPoints"
+        name="aiKeyPoints"
+        rows="5">{aiKeyPointsText}</textarea
+      >
     </div>
 
     <div class="form-row">
-      <span class="label">Tags</span>
-      {#if aiTags.length}
-        <p>{aiTags.join(", ")}</p>
-      {:else}
-        <p class="muted">No tags generated.</p>
-      {/if}
+      <label class="label" for="aiTags">Tags</label>
+      <input class="input" id="aiTags" name="aiTags" value={aiTagsText} />
     </div>
 
     <div class="form-row">
-      <span class="label">SEO title</span>
-      <p class="muted">{video.aiSeoTitle || "-"}</p>
+      <label class="label" for="aiSeoTitle">SEO title</label>
+      <input
+        class="input"
+        id="aiSeoTitle"
+        name="aiSeoTitle"
+        value={video.aiSeoTitle || ""}
+      />
     </div>
 
     <div class="form-row">
-      <span class="label">SEO description</span>
-      <p class="muted">{video.aiSeoDescription || "-"}</p>
+      <label class="label" for="aiSeoDescription">SEO description</label>
+      <textarea
+        class="textarea"
+        id="aiSeoDescription"
+        name="aiSeoDescription"
+        rows="3">{video.aiSeoDescription || ""}</textarea
+      >
     </div>
 
     <div class="form-row">
-      <span class="label">Detected language</span>
-      <p class="muted">{video.aiLanguage || "-"}</p>
+      <label class="label" for="aiLanguage">Detected language</label>
+      <select class="select" id="aiLanguage" name="aiLanguage">
+        <option value="">Not defined</option>
+        <option value="am" selected={video.aiLanguage === "am"}>am</option>
+        <option value="om" selected={video.aiLanguage === "om"}>om</option>
+        <option value="ti" selected={video.aiLanguage === "ti"}>ti</option>
+        <option value="en" selected={video.aiLanguage === "en"}>en</option>
+        <option value="fr" selected={video.aiLanguage === "fr"}>fr</option>
+        <option value="unknown" selected={video.aiLanguage === "unknown"}
+          >unknown</option
+        >
+      </select>
     </div>
 
     <div class="form-row">
-      <span class="label">Suggested category</span>
-      <p class="muted">{video.aiCategorySuggestion || "-"}</p>
+      <label class="label" for="aiCategorySuggestion">Suggested category</label>
+      <select
+        class="select"
+        id="aiCategorySuggestion"
+        name="aiCategorySuggestion"
+      >
+        <option value="">Not defined</option>
+        {#each ["News", "Music", "Drama", "Comedy", "Religion", "Diaspora", "Business", "Culture", "Sport", "Other"] as category}
+          <option
+            value={category}
+            selected={video.aiCategorySuggestion === category}>{category}</option
+          >
+        {/each}
+      </select>
     </div>
-  </div>
+
+    <div class="form-row">
+      <label class="label" for="aiConfidence">Confidence</label>
+      <input
+        class="input"
+        id="aiConfidence"
+        name="aiConfidence"
+        type="number"
+        min="0"
+        max="1"
+        step="0.01"
+        value={video.aiConfidence ?? ""}
+      />
+    </div>
+
+    <label>
+      <input
+        type="checkbox"
+        name="aiNeedsHumanReview"
+        checked={video.aiNeedsHumanReview}
+      />
+      Needs human review
+    </label>
+
+    <button class="button" type="submit">Save AI metadata</button>
+  </form>
 
   <form method="POST" action="?/generateAiSummary" class="form section">
     <div class="form-row">
