@@ -1,5 +1,5 @@
-import { signOut } from '../../../auth';
+import { signOut } from "../../../auth";
 
 export const actions = {
-  default: signOut
+  default: signOut,
 };

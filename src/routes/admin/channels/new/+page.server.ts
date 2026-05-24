@@ -1,11 +1,11 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { prisma } from '$lib/server/prisma';
-import { createSlug } from '$lib/server/slug';
-import { fetchYoutubeChannel } from '$lib/server/youtube';
+import { fail, redirect } from "@sveltejs/kit";
+import { prisma } from "$lib/server/prisma";
+import { createSlug } from "$lib/server/slug";
+import { fetchYoutubeChannel } from "$lib/server/youtube";
 
 export const load = async () => {
   const categories = await prisma.category.findMany({
-    orderBy: { name: 'asc' }
+    orderBy: { name: "asc" },
   });
 
   return { categories };
@@ -15,15 +15,17 @@ export const actions = {
   default: async ({ request }) => {
     const formData = await request.formData();
 
-    const youtubeChannelId = String(formData.get('youtubeChannelId') ?? '').trim();
-    const defaultCategoryId = String(formData.get('defaultCategoryId') ?? '');
-    const defaultLanguage = String(formData.get('defaultLanguage') ?? '');
-    const defaultStatus = String(formData.get('defaultStatus') ?? 'DRAFT');
-    const autoImportEnabled = formData.get('autoImportEnabled') === 'on';
+    const youtubeChannelId = String(
+      formData.get("youtubeChannelId") ?? "",
+    ).trim();
+    const defaultCategoryId = String(formData.get("defaultCategoryId") ?? "");
+    const defaultLanguage = String(formData.get("defaultLanguage") ?? "");
+    const defaultStatus = String(formData.get("defaultStatus") ?? "DRAFT");
+    const autoImportEnabled = formData.get("autoImportEnabled") === "on";
 
     if (!youtubeChannelId) {
       return fail(400, {
-        message: 'YouTube channel ID is required.'
+        message: "YouTube channel ID is required.",
       });
     }
 
@@ -33,7 +35,10 @@ export const actions = {
       youtubeChannel = await fetchYoutubeChannel(youtubeChannelId);
     } catch (error) {
       return fail(400, {
-        message: error instanceof Error ? error.message : 'Unable to fetch YouTube channel.'
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to fetch YouTube channel.",
       });
     }
 
@@ -41,7 +46,7 @@ export const actions = {
 
     await prisma.channel.upsert({
       where: {
-        youtubeChannelId: youtubeChannel.youtubeChannelId
+        youtubeChannelId: youtubeChannel.youtubeChannelId,
       },
       update: {
         slug: channelSlug,
@@ -53,8 +58,8 @@ export const actions = {
         uploadsPlaylistId: youtubeChannel.uploadsPlaylistId,
         defaultCategoryId: defaultCategoryId || null,
         defaultLanguage: defaultLanguage || null,
-        defaultStatus: defaultStatus === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT',
-        autoImportEnabled
+        defaultStatus: defaultStatus === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
+        autoImportEnabled,
       },
       create: {
         youtubeChannelId: youtubeChannel.youtubeChannelId,
@@ -67,11 +72,11 @@ export const actions = {
         uploadsPlaylistId: youtubeChannel.uploadsPlaylistId,
         defaultCategoryId: defaultCategoryId || null,
         defaultLanguage: defaultLanguage || null,
-        defaultStatus: defaultStatus === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT',
-        autoImportEnabled
-      }
+        defaultStatus: defaultStatus === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
+        autoImportEnabled,
+      },
     });
 
-    throw redirect(303, '/admin/channels');
-  }
+    throw redirect(303, "/admin/channels");
+  },
 };

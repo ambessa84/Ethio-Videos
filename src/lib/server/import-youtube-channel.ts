@@ -1,47 +1,50 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '$lib/server/prisma';
-import { createSlug } from '$lib/server/slug';
+import { Prisma } from "@prisma/client";
+import { prisma } from "$lib/server/prisma";
+import { createSlug } from "$lib/server/slug";
 import {
   fetchYoutubePlaylistVideos,
-  fetchYoutubeVideosByIds
-} from '$lib/server/youtube';
+  fetchYoutubeVideosByIds,
+} from "$lib/server/youtube";
 
 export async function importLatestVideosForChannel(channelId: string) {
   const channel = await prisma.channel.findUnique({
-    where: { id: channelId }
+    where: { id: channelId },
   });
 
   if (!channel) {
-    throw new Error('Channel not found.');
+    throw new Error("Channel not found.");
   }
 
   if (!channel.uploadsPlaylistId) {
-    throw new Error('This channel has no uploads playlist ID.');
+    throw new Error("This channel has no uploads playlist ID.");
   }
 
   if (!channel.autoImportEnabled) {
-    throw new Error('Automatic import is disabled for this channel.');
+    throw new Error("Automatic import is disabled for this channel.");
   }
 
-  const playlistVideos = await fetchYoutubePlaylistVideos(channel.uploadsPlaylistId, 15);
+  const playlistVideos = await fetchYoutubePlaylistVideos(
+    channel.uploadsPlaylistId,
+    15,
+  );
   const playlistVideoIds = playlistVideos.map((video) => video.youtubeVideoId);
 
   const existingVideos = await prisma.video.findMany({
     where: {
       youtubeVideoId: {
-        in: playlistVideoIds
-      }
+        in: playlistVideoIds,
+      },
     },
     select: {
-      youtubeVideoId: true
-    }
+      youtubeVideoId: true,
+    },
   });
 
   const existingVideoIds = new Set(
-    existingVideos.map((video) => video.youtubeVideoId)
+    existingVideos.map((video) => video.youtubeVideoId),
   );
   const newVideoIds = playlistVideoIds.filter(
-    (youtubeVideoId) => !existingVideoIds.has(youtubeVideoId)
+    (youtubeVideoId) => !existingVideoIds.has(youtubeVideoId),
   );
 
   const videos = await fetchYoutubeVideosByIds(newVideoIds);
@@ -65,15 +68,15 @@ export async function importLatestVideosForChannel(channelId: string) {
           language: channel.defaultLanguage,
           status: channel.defaultStatus,
           channelId: channel.id,
-          categoryId: channel.defaultCategoryId
-        }
+          categoryId: channel.defaultCategoryId,
+        },
       });
 
       imported += 1;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
+        error.code === "P2002"
       ) {
         skipped += 1;
         continue;
@@ -86,33 +89,33 @@ export async function importLatestVideosForChannel(channelId: string) {
   await prisma.channel.update({
     where: { id: channel.id },
     data: {
-      lastImportedAt: new Date()
-    }
+      lastImportedAt: new Date(),
+    },
   });
 
   return {
     imported,
     skipped,
-    message: `Imported ${imported} video${imported === 1 ? '' : 's'}, skipped ${skipped}.`
+    message: `Imported ${imported} video${imported === 1 ? "" : "s"}, skipped ${skipped}.`,
   };
 }
 
 export async function importLatestVideosForAllChannels() {
   const channels = await prisma.channel.findMany({
     where: {
-      status: 'ACTIVE',
+      status: "ACTIVE",
       autoImportEnabled: true,
       uploadsPlaylistId: {
-        not: null
-      }
+        not: null,
+      },
     },
     select: {
       id: true,
-      title: true
+      title: true,
     },
     orderBy: {
-      title: 'asc'
-    }
+      title: "asc",
+    },
   });
 
   const results = [];
@@ -125,7 +128,7 @@ export async function importLatestVideosForAllChannels() {
         channelId: channel.id,
         title: channel.title,
         ok: true,
-        ...result
+        ...result,
       });
     } catch (error) {
       results.push({
@@ -134,7 +137,8 @@ export async function importLatestVideosForAllChannels() {
         ok: false,
         imported: 0,
         skipped: 0,
-        message: error instanceof Error ? error.message : 'Unable to import channel.'
+        message:
+          error instanceof Error ? error.message : "Unable to import channel.",
       });
     }
   }

@@ -246,7 +246,9 @@ export async function fetchYoutubePlaylistVideos(
   return items
     .map((item) => {
       const youtubeVideoId =
-        item.contentDetails?.videoId ?? item.snippet.resourceId?.videoId ?? null;
+        item.contentDetails?.videoId ??
+        item.snippet.resourceId?.videoId ??
+        null;
 
       if (!youtubeVideoId) return null;
 

@@ -1,20 +1,20 @@
-import { prisma } from '$lib/server/prisma';
-import { env } from '$env/dynamic/private';
+import { prisma } from "$lib/server/prisma";
+import { env } from "$env/dynamic/private";
 
 export const GET = async () => {
-  const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+  const siteUrl = env.PUBLIC_SITE_URL || "http://localhost:5173";
 
   const [videos, categories, channels] = await Promise.all([
     prisma.video.findMany({
-      where: { status: 'PUBLISHED' },
-      select: { slug: true, updatedAt: true }
+      where: { status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true },
     }),
     prisma.category.findMany({
-      select: { slug: true, updatedAt: true }
+      select: { slug: true, updatedAt: true },
     }),
     prisma.channel.findMany({
-      select: { slug: true, updatedAt: true }
-    })
+      select: { slug: true, updatedAt: true },
+    }),
   ]);
 
   const urls = [
@@ -23,16 +23,16 @@ export const GET = async () => {
     { loc: `${siteUrl}/trending`, lastmod: new Date() },
     ...videos.map((video) => ({
       loc: `${siteUrl}/video/${video.slug}`,
-      lastmod: video.updatedAt
+      lastmod: video.updatedAt,
     })),
     ...categories.map((category) => ({
       loc: `${siteUrl}/category/${category.slug}`,
-      lastmod: category.updatedAt
+      lastmod: category.updatedAt,
     })),
     ...channels.map((channel) => ({
       loc: `${siteUrl}/channel/${channel.slug}`,
-      lastmod: channel.updatedAt
-    }))
+      lastmod: channel.updatedAt,
+    })),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
@@ -42,14 +42,14 @@ ${urls
     (url) => `<url>
   <loc>${url.loc}</loc>
   <lastmod>${url.lastmod.toISOString()}</lastmod>
-</url>`
+</url>`,
   )
-  .join('\n')}
+  .join("\n")}
 </urlset>`;
 
   return new Response(body, {
     headers: {
-      'content-type': 'application/xml'
-    }
+      "content-type": "application/xml",
+    },
   });
 };

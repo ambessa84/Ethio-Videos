@@ -1,6 +1,7 @@
 # Ethio Videos MVP
 
 MVP SvelteKit pour créer un site de curation de vidéos YouTube autour de l'Éthiopie :
+
 - pages publiques : accueil, catégorie, vidéo, chaîne, recherche, suggestion vidéo ;
 - admin simple protégé par mot de passe ;
 - ajout manuel d'une vidéo YouTube ;
@@ -31,6 +32,9 @@ Modifie `.env` :
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/ethio_videos"
 YOUTUBE_API_KEY="your_youtube_api_key"
+AI_PROVIDER="ollama"
+OLLAMA_BASE_URL="http://localhost:11434"
+OLLAMA_MODEL="qwen2.5:3b"
 OPENAI_API_KEY="your_openai_api_key"
 OPENAI_MODEL="gpt-5.4-mini"
 ADMIN_PASSWORD="change_me"
@@ -87,15 +91,40 @@ stockees : titre, description, chaine, categorie, langue et date de publication.
 Elle n'utilise pas de transcription, ne telecharge pas les videos et ne recupere
 pas les captions YouTube.
 
-Ajoute la cle OpenAI dans `.env` :
+Par defaut, la generation utilise Ollama en local avec un modele gratuit. Installe
+Ollama, puis telecharge le modele recommande :
+
+```bash
+ollama pull qwen2.5:3b
+```
+
+Configure `.env` :
 
 ```env
+AI_PROVIDER="ollama"
+OLLAMA_BASE_URL="http://localhost:11434"
+OLLAMA_MODEL="qwen2.5:3b"
+```
+
+Si Ollama n'est pas lance, demarre-le avant de generer un resume :
+
+```bash
+ollama serve
+```
+
+OpenAI reste disponible en option, par exemple pour une meilleure qualite en
+production :
+
+```env
+AI_PROVIDER="openai"
 OPENAI_API_KEY="your_openai_api_key"
 OPENAI_MODEL="gpt-5.4-mini"
 ```
 
-`OPENAI_MODEL` est optionnel. Si la variable est absente, le projet utilise
-`gpt-5.4-mini`.
+`AI_PROVIDER` accepte `ollama` ou `openai`. Si la variable est absente ou
+inconnue, le projet utilise Ollama. `OLLAMA_MODEL` est optionnel et vaut
+`qwen2.5:3b` par defaut. `OPENAI_MODEL` est optionnel et vaut `gpt-5.4-mini`
+par defaut.
 
 Apres avoir installe les dependances, lance la migration Prisma :
 
@@ -158,6 +187,7 @@ admin du MVP, et `AUTH_SECRET` doit être une chaîne aléatoire d'au moins 32 c
 signer les sessions.
 
 Pour utiliser l'API YouTube Data v3 :
+
 1. Crée un projet dans Google Cloud.
 2. Active YouTube Data API v3.
 3. Crée une API key.

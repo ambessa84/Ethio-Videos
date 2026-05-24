@@ -1,7 +1,7 @@
-import { env } from '$env/dynamic/private';
+import { env } from "$env/dynamic/private";
 
 export const GET = async () => {
-  const siteUrl = env.PUBLIC_SITE_URL || 'http://localhost:5173';
+  const siteUrl = env.PUBLIC_SITE_URL || "http://localhost:5173";
 
   return new Response(
     `User-agent: *
@@ -11,8 +11,8 @@ Sitemap: ${siteUrl}/sitemap.xml
 `,
     {
       headers: {
-        'content-type': 'text/plain'
-      }
-    }
+        "content-type": "text/plain",
+      },
+    },
   );
 };

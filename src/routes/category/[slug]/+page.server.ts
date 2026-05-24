@@ -1,28 +1,28 @@
-import { error } from '@sveltejs/kit';
-import { prisma } from '$lib/server/prisma';
+import { error } from "@sveltejs/kit";
+import { prisma } from "$lib/server/prisma";
 
 export const load = async ({ params }) => {
   const category = await prisma.category.findUnique({
-    where: { slug: params.slug }
+    where: { slug: params.slug },
   });
 
   if (!category) {
-    throw error(404, 'Category not found');
+    throw error(404, "Category not found");
   }
 
   const videos = await prisma.video.findMany({
     where: {
-      status: 'PUBLISHED',
-      categoryId: category.id
+      status: "PUBLISHED",
+      categoryId: category.id,
     },
     include: {
       channel: true,
-      category: true
+      category: true,
     },
     orderBy: {
-      publishedAt: 'desc'
+      publishedAt: "desc",
     },
-    take: 72
+    take: 72,
   });
 
   return { category, videos };
