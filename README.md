@@ -23,7 +23,7 @@ MVP SvelteKit pour créer un site de curation de vidéos YouTube autour de l'Ét
 ## Installation
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env
 ```
 
@@ -46,14 +46,14 @@ PUBLIC_SITE_URL="http://localhost:5173"
 Puis lance Prisma :
 
 ```bash
-npx prisma migrate dev --name init
-npx prisma db seed
+pnpm prisma migrate dev --name init
+pnpm prisma db seed
 ```
 
 Lance le projet :
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ## Flux principal
@@ -129,8 +129,8 @@ par defaut.
 Apres avoir installe les dependances, lance la migration Prisma :
 
 ```bash
-npx prisma migrate dev --name add_ai_summary_fields
-npx prisma generate
+pnpm prisma migrate dev --name add_ai_summary_fields
+pnpm prisma generate
 ```
 
 Flux admin :
