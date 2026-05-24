@@ -1,31 +1,31 @@
-import { prisma } from '$lib/server/prisma';
+import { prisma } from "$lib/server/prisma";
 
 export const load = async ({ url }) => {
-  const q = url.searchParams.get('q')?.trim() ?? '';
+  const q = url.searchParams.get("q")?.trim() ?? "";
 
   const videos = q
     ? await prisma.video.findMany({
         where: {
-          status: 'PUBLISHED',
+          status: "PUBLISHED",
           OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
-            { summary: { contains: q, mode: 'insensitive' } },
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+            { summary: { contains: q, mode: "insensitive" } },
             {
               channel: {
-                title: { contains: q, mode: 'insensitive' }
-              }
-            }
-          ]
+                title: { contains: q, mode: "insensitive" },
+              },
+            },
+          ],
         },
         include: {
           channel: true,
-          category: true
+          category: true,
         },
         orderBy: {
-          publishedAt: 'desc'
+          publishedAt: "desc",
         },
-        take: 60
+        take: 60,
       })
     : [];
 

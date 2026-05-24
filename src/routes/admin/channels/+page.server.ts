@@ -1,16 +1,16 @@
-import { prisma } from '$lib/server/prisma';
-import { importLatestVideosForChannel } from '$lib/server/import-youtube-channel';
-import { fail } from '@sveltejs/kit';
+import { prisma } from "$lib/server/prisma";
+import { importLatestVideosForChannel } from "$lib/server/import-youtube-channel";
+import { fail } from "@sveltejs/kit";
 
 export const load = async () => {
   const channels = await prisma.channel.findMany({
-    orderBy: { title: 'asc' },
+    orderBy: { title: "asc" },
     include: {
       defaultCategory: true,
       _count: {
-        select: { videos: true }
-      }
-    }
+        select: { videos: true },
+      },
+    },
   });
 
   return { channels };
@@ -19,11 +19,11 @@ export const load = async () => {
 export const actions = {
   import: async ({ request }) => {
     const formData = await request.formData();
-    const channelId = String(formData.get('channelId') ?? '');
+    const channelId = String(formData.get("channelId") ?? "");
 
     if (!channelId) {
       return fail(400, {
-        message: 'Channel ID is required.'
+        message: "Channel ID is required.",
       });
     }
 
@@ -31,8 +31,11 @@ export const actions = {
       return await importLatestVideosForChannel(channelId);
     } catch (error) {
       return fail(400, {
-        message: error instanceof Error ? error.message : 'Unable to import latest videos.'
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to import latest videos.",
       });
     }
-  }
+  },
 };

@@ -1,11 +1,11 @@
-import { prisma } from '$lib/server/prisma';
+import { prisma } from "$lib/server/prisma";
 
 export const load = async () => {
   const videos = await prisma.video.findMany({
-    where: { status: 'PUBLISHED' },
+    where: { status: "PUBLISHED" },
     include: { channel: true, category: true },
-    orderBy: [{ viewCount: 'desc' }, { publishedAt: 'desc' }],
-    take: 72
+    orderBy: [{ viewCount: "desc" }, { publishedAt: "desc" }],
+    take: 72,
   });
 
   return { videos };

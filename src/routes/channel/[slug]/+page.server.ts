@@ -1,28 +1,28 @@
-import { error } from '@sveltejs/kit';
-import { prisma } from '$lib/server/prisma';
+import { error } from "@sveltejs/kit";
+import { prisma } from "$lib/server/prisma";
 
 export const load = async ({ params }) => {
   const channel = await prisma.channel.findUnique({
-    where: { slug: params.slug }
+    where: { slug: params.slug },
   });
 
   if (!channel) {
-    throw error(404, 'Channel not found');
+    throw error(404, "Channel not found");
   }
 
   const videos = await prisma.video.findMany({
     where: {
-      status: 'PUBLISHED',
-      channelId: channel.id
+      status: "PUBLISHED",
+      channelId: channel.id,
     },
     include: {
       channel: true,
-      category: true
+      category: true,
     },
     orderBy: {
-      publishedAt: 'desc'
+      publishedAt: "desc",
     },
-    take: 72
+    take: 72,
   });
 
   return { channel, videos };
