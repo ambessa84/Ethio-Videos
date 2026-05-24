@@ -1,6 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { prisma } from '$lib/server/prisma';
 import { createSlug } from '$lib/server/slug';
+import { generateVideoAiSummary } from '$lib/server/ai-summary';
 
 export const load = async ({ params }) => {
   const [video, categories] = await Promise.all([
@@ -48,6 +49,57 @@ export const actions = {
     });
 
     return { success: true };
+  },
+
+  generateAiSummary: async ({ request, params }) => {
+    const formData = await request.formData();
+    const outputLanguage = String(formData.get('outputLanguage') ?? '').trim();
+
+    try {
+      await generateVideoAiSummary(params.id, {
+        outputLanguage: outputLanguage || undefined
+      });
+
+      return {
+        success: true,
+        message: 'AI summary generated.'
+      };
+    } catch (error) {
+      return fail(400, {
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to generate AI summary.'
+      });
+    }
+  },
+
+  applyAiSummary: async ({ params }) => {
+    const video = await prisma.video.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!video) {
+      return fail(404, { message: 'Video not found.' });
+    }
+
+    if (!video.aiShortSummary) {
+      return fail(400, {
+        message: 'No AI short summary available.'
+      });
+    }
+
+    await prisma.video.update({
+      where: { id: params.id },
+      data: {
+        summary: video.aiShortSummary
+      }
+    });
+
+    return {
+      success: true,
+      message: 'AI short summary copied to public summary.'
+    };
   },
 
   delete: async ({ params }) => {
