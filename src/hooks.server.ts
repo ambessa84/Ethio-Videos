@@ -1,5 +1,6 @@
 import { redirect, type Handle } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
+import { defaultLanguage, isSupportedLanguage } from "$lib/i18n";
 import { handle as authenticationHandle } from "./auth";
 
 const authorizationHandle: Handle = async ({ event, resolve }) => {
@@ -14,7 +15,15 @@ const authorizationHandle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  return resolve(event);
+  const language = pathname.split("/").filter(Boolean)[0];
+
+  return resolve(event, {
+    transformPageChunk: ({ html }) =>
+      html.replace(
+        '<html lang="en">',
+        `<html lang="${isSupportedLanguage(language) ? language : defaultLanguage}">`,
+      ),
+  });
 };
 
 export const handle: Handle = sequence(
