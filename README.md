@@ -140,8 +140,10 @@ Flux admin :
 3. Clique sur `Generate AI Summary`.
 4. Verifie le resume court, le resume long, les points cles, les tags, les
    champs SEO, la confiance et le flag de revue humaine.
-5. Clique sur `Copy AI short summary to public summary` pour copier le resume
-   court IA dans le champ public `summary`.
+5. Mets `Public language status` sur `Published` quand la metadata de cette
+   langue est prete a etre visible sur le site.
+6. Clique sur `Copy AI short summary to public summary` si tu veux aussi copier
+   le resume court IA dans l'ancien champ public `summary`.
 
 Les metadonnees IA sont stockees par video et par langue de site. Generer les
 metadonnees `fr` n'ecrase donc pas les metadonnees `en`, et inversement.
@@ -149,8 +151,9 @@ Chaque metadata IA peut aussi stocker un slug SEO localise. Les pages publiques
 localisees utilisent ces slugs pour construire des URLs par langue.
 
 Les anciennes pages publiques affichent encore `summary` pour compatibilite. Les
-routes localisees `/[lang]/videos/[localizedSlug]` affichent la metadata IA de la
-langue active quand elle existe, avec fallback sur les champs publics de la video.
+routes localisees `/[lang]/videos/[localizedSlug]` affichent uniquement les
+videos dont la metadata IA de la langue active est publiee. Une video peut donc
+etre visible en `fr` sans etre encore publiee en `en` ou `am`.
 
 ## Routes
 

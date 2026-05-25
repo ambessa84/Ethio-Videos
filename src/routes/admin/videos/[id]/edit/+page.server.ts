@@ -129,6 +129,10 @@ export const actions = {
     const aiCategorySuggestion = String(
       formData.get("aiCategorySuggestion") ?? "",
     ).trim();
+    const localizedStatus =
+      String(formData.get("localizedStatus") ?? "") === "PUBLISHED"
+        ? ("PUBLISHED" as const)
+        : ("DRAFT" as const);
     const aiConfidenceRaw = String(formData.get("aiConfidence") ?? "").trim();
     const aiConfidence = aiConfidenceRaw ? Number(aiConfidenceRaw) : null;
     const aiNeedsHumanReview = formData.get("aiNeedsHumanReview") === "on";
@@ -140,6 +144,23 @@ export const actions = {
       return fail(400, {
         message: "AI confidence must be a number between 0 and 1.",
       });
+    }
+
+    if (localizedStatus === "PUBLISHED") {
+      const missingFields = [
+        [aiSlug, "localized slug"],
+        [aiShortSummary, "short summary"],
+        [aiSeoTitle, "SEO title"],
+        [aiSeoDescription, "SEO description"],
+      ]
+        .filter(([value]) => !value)
+        .map(([, label]) => label);
+
+      if (missingFields.length) {
+        return fail(400, {
+          message: `Cannot publish ${language} metadata without ${missingFields.join(", ")}.`,
+        });
+      }
     }
 
     const status =
@@ -163,6 +184,8 @@ export const actions = {
       confidence: aiConfidence,
       needsHumanReview: aiNeedsHumanReview,
       status,
+      localizedStatus,
+      publishedAt: localizedStatus === "PUBLISHED" ? new Date() : null,
       error: null,
     };
 

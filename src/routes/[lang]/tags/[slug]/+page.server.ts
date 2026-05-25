@@ -1,6 +1,10 @@
 import { error } from "@sveltejs/kit";
 import { normalizeSiteLanguage } from "$lib/i18n";
-import { includeAiMetadata, localizeVideo } from "$lib/server/localized-videos";
+import {
+  hasPublishedMetadata,
+  includeAiMetadata,
+  localizeVideo,
+} from "$lib/server/localized-videos";
 import { prisma } from "$lib/server/prisma";
 
 export const load = async ({ params }) => {
@@ -18,6 +22,7 @@ export const load = async ({ params }) => {
       tagId: tag.id,
       video: {
         status: "PUBLISHED",
+        aiMetadata: hasPublishedMetadata(lang),
       },
     },
     include: {

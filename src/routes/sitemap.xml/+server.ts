@@ -19,10 +19,14 @@ export const GET = async () => {
         slug: true,
         updatedAt: true,
         aiMetadata: {
+          where: {
+            localizedStatus: "PUBLISHED",
+          },
           select: {
             language: true,
             slug: true,
             updatedAt: true,
+            localizedStatus: true,
           },
         },
       },
@@ -73,18 +77,22 @@ export const GET = async () => {
       lastmod: new Date(),
     })),
     ...videos.flatMap((video) =>
-      supportedLanguages.map((language) => {
-        const metadata = video.aiMetadata.find(
-          (metadata) => metadata.language === language,
+      video.aiMetadata.flatMap((metadata) => {
+        const language = supportedLanguages.find(
+          (language) => language === metadata.language,
         );
 
-        return {
-          loc: `${siteUrl}${getLocalizedVideoPath(
-            language,
-            metadata?.slug || video.slug,
-          )}`,
-          lastmod: metadata?.updatedAt ?? video.updatedAt,
-        };
+        return language && metadata.slug
+          ? [
+              {
+                loc: `${siteUrl}${getLocalizedVideoPath(
+                  language,
+                  metadata.slug,
+                )}`,
+                lastmod: metadata.updatedAt ?? video.updatedAt,
+              },
+            ]
+          : [];
       }),
     ),
     ...categories.map((category) => ({

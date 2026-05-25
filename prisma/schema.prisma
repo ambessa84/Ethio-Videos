@@ -120,7 +120,7 @@ model VideoTag {
 }
 
 model VideoAiMetadata {
-  id                 String          @id @default(cuid())
+  id                 String               @id @default(cuid())
   videoId            String
   language           String
   slug               String?
@@ -133,10 +133,12 @@ model VideoAiMetadata {
   detectedLanguage   String?
   categorySuggestion String?
   confidence         Float?
-  needsHumanReview   Boolean         @default(true)
+  needsHumanReview   Boolean              @default(true)
   generatedAt        DateTime?
-  status             AiSummaryStatus @default(NOT_GENERATED)
+  status             AiSummaryStatus      @default(NOT_GENERATED)
   error              String?
+  localizedStatus    LocalizedVideoStatus @default(DRAFT)
+  publishedAt        DateTime?
 
   video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
@@ -146,6 +148,7 @@ model VideoAiMetadata {
   @@unique([videoId, language])
   @@unique([language, slug])
   @@index([language])
+  @@index([language, localizedStatus])
 }
 
 model VideoSuggestion {
@@ -179,6 +182,11 @@ enum AiSummaryStatus {
   GENERATING
   GENERATED
   FAILED
+}
+
+enum LocalizedVideoStatus {
+  DRAFT
+  PUBLISHED
 }
 
 enum SuggestionStatus {

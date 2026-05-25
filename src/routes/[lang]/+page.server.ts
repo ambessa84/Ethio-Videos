@@ -1,5 +1,9 @@
 import { normalizeSiteLanguage } from "$lib/i18n";
-import { includeAiMetadata, localizeVideo } from "$lib/server/localized-videos";
+import {
+  hasPublishedMetadata,
+  includeAiMetadata,
+  localizeVideo,
+} from "$lib/server/localized-videos";
 import { prisma } from "$lib/server/prisma";
 
 export const load = async ({ params }) => {
@@ -7,13 +11,20 @@ export const load = async ({ params }) => {
   const aiMetadata = includeAiMetadata(lang);
   const [latestVideos, featuredVideos, categories] = await Promise.all([
     prisma.video.findMany({
-      where: { status: "PUBLISHED" },
+      where: {
+        status: "PUBLISHED",
+        aiMetadata: hasPublishedMetadata(lang),
+      },
       include: { channel: true, category: true, aiMetadata },
       orderBy: { publishedAt: "desc" },
       take: 16,
     }),
     prisma.video.findMany({
-      where: { status: "PUBLISHED", isFeatured: true },
+      where: {
+        status: "PUBLISHED",
+        isFeatured: true,
+        aiMetadata: hasPublishedMetadata(lang),
+      },
       include: { channel: true, category: true, aiMetadata },
       orderBy: { updatedAt: "desc" },
       take: 8,
