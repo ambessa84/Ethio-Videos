@@ -1,12 +1,27 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import VideoCard from "$lib/components/VideoCard.svelte";
+  import {
+    buildJsonLdScriptTag,
+    buildVideoStructuredDataJson,
+  } from "$lib/structured-data";
   import { formatNumber, formatDate } from "$lib/utils";
 
   let { data } = $props();
 
   let video = $derived(data.video);
   let shareUrl = $derived($page.url.href);
+  let structuredDataScript = $derived(
+    buildJsonLdScriptTag(
+      buildVideoStructuredDataJson({
+        title: video.title,
+        description: video.summary || video.description || video.title,
+        thumbnailUrl: video.thumbnailUrl,
+        publishedAt: video.publishedAt,
+        youtubeVideoId: video.youtubeVideoId,
+      }),
+    ),
+  );
 </script>
 
 <svelte:head>
@@ -19,17 +34,7 @@
   <meta property="og:description" content={video.summary || video.title} />
   <meta property="og:image" content={video.thumbnailUrl || ""} />
 
-  <script type="application/ld+json">
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'VideoObject',
-      name: video.title,
-      description: video.summary || video.description || video.title,
-      thumbnailUrl: video.thumbnailUrl ? [video.thumbnailUrl] : undefined,
-      uploadDate: video.publishedAt,
-      embedUrl: `https://www.youtube.com/embed/${video.youtubeVideoId}`
-    })}
-  </script>
+  {@html structuredDataScript}
 </svelte:head>
 
 <article class="two-col">

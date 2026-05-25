@@ -7,6 +7,10 @@
     getLocalizedTagPath,
     localizedLabels,
   } from "$lib/i18n";
+  import {
+    buildJsonLdScriptTag,
+    buildVideoStructuredDataJson,
+  } from "$lib/structured-data";
   import { formatNumber, formatDate } from "$lib/utils";
 
   let { data } = $props();
@@ -14,6 +18,17 @@
   let video = $derived(data.video);
   let labels = $derived(localizedLabels[data.lang]);
   let shareUrl = $derived($page.url.href);
+  let structuredDataScript = $derived(
+    buildJsonLdScriptTag(
+      buildVideoStructuredDataJson({
+        title: video.localizedTitle || video.title,
+        description: video.localizedDescription,
+        thumbnailUrl: video.thumbnailUrl,
+        publishedAt: video.publishedAt,
+        youtubeVideoId: video.youtubeVideoId,
+      }),
+    ),
+  );
 </script>
 
 <svelte:head>
@@ -27,17 +42,7 @@
     <link rel="alternate" hreflang={language} href={`${$page.url.origin}${path}`} />
   {/each}
 
-  <script type="application/ld+json">
-    {JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'VideoObject',
-      name: video.localizedTitle || video.title,
-      description: video.localizedDescription,
-      thumbnailUrl: video.thumbnailUrl ? [video.thumbnailUrl] : undefined,
-      uploadDate: video.publishedAt,
-      embedUrl: `https://www.youtube.com/embed/${video.youtubeVideoId}`
-    })}
-  </script>
+  {@html structuredDataScript}
 </svelte:head>
 
 <article class="two-col">
