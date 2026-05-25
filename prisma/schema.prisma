@@ -123,6 +123,7 @@ model VideoAiMetadata {
   id                 String          @id @default(cuid())
   videoId            String
   language           String
+  slug               String?
   shortSummary       String?
   longSummary        String?
   keyPoints          String?
@@ -143,6 +144,7 @@ model VideoAiMetadata {
   updatedAt DateTime @updatedAt
 
   @@unique([videoId, language])
+  @@unique([language, slug])
   @@index([language])
 }
 

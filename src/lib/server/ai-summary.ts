@@ -1,4 +1,5 @@
 import { prisma } from "$lib/server/prisma";
+import { createUniqueAiMetadataSlug } from "$lib/server/ai-metadata-slugs";
 import {
   buildAiSummaryMessages,
   normalizeAiSummaryLanguage,
@@ -60,7 +61,13 @@ export async function generateVideoAiSummary(
     const parsed = normalizeAiSummary(parseJsonObject(responseText));
 
     const generatedAt = new Date();
+    const slug = await createUniqueAiMetadataSlug(
+      parsed.slug || parsed.seoTitle || parsed.shortSummary || video.title,
+      outputLanguage,
+      video.id,
+    );
     const data = {
+      slug,
       shortSummary: parsed.shortSummary || null,
       longSummary: parsed.longSummary || null,
       keyPoints: JSON.stringify(parsed.keyPoints),
