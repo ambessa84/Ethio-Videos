@@ -2,12 +2,27 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { prisma } from "$lib/server/prisma";
 import { createSlug } from "$lib/server/slug";
 import { generateVideoAiSummary } from "$lib/server/ai-summary";
+import { normalizeAiSummaryLanguage } from "$lib/server/ai-summary-core";
+import { parseStoredAiTags, replaceVideoTags } from "$lib/server/tags";
 
-export const load = async ({ params }) => {
+export const load = async ({ params, url }) => {
+  const aiMetadataLanguage = normalizeAiSummaryLanguage(
+    url.searchParams.get("aiLanguage") ?? undefined,
+  );
   const [video, categories] = await Promise.all([
     prisma.video.findUnique({
       where: { id: params.id },
-      include: { channel: true, category: true },
+      include: {
+        channel: true,
+        category: true,
+        tags: {
+          include: { tag: true },
+          orderBy: { tag: { name: "asc" } },
+        },
+        aiMetadata: {
+          orderBy: { language: "asc" },
+        },
+      },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
@@ -16,7 +31,15 @@ export const load = async ({ params }) => {
     throw error(404, "Video not found");
   }
 
-  return { video, categories };
+  return {
+    video,
+    categories,
+    aiMetadataLanguage,
+    aiMetadata:
+      video.aiMetadata.find(
+        (metadata) => metadata.language === aiMetadataLanguage,
+      ) ?? null,
+  };
 };
 
 export const actions = {
@@ -30,6 +53,7 @@ export const actions = {
     const language = String(formData.get("language") ?? "");
     const status = String(formData.get("status") ?? "DRAFT");
     const isFeatured = formData.get("isFeatured") === "on";
+    const tags = String(formData.get("tags") ?? "");
 
     if (!title) {
       return fail(400, { message: "Title is required." });
@@ -53,22 +77,21 @@ export const actions = {
       },
     });
 
+    await replaceVideoTags(params.id, tags);
+
     return { success: true };
   },
 
   generateAiSummary: async ({ request, params }) => {
     const formData = await request.formData();
-    const outputLanguage = String(formData.get("outputLanguage") ?? "").trim();
+    const outputLanguage = normalizeAiSummaryLanguage(
+      String(formData.get("outputLanguage") ?? ""),
+    );
 
     try {
       await generateVideoAiSummary(params.id, {
-        outputLanguage: outputLanguage || undefined,
+        outputLanguage,
       });
-
-      return {
-        success: true,
-        message: "AI summary generated.",
-      };
     } catch (error) {
       return fail(400, {
         message:
@@ -77,10 +100,15 @@ export const actions = {
             : "Unable to generate AI summary.",
       });
     }
+
+    throw redirect(303, `?aiLanguage=${outputLanguage}`);
   },
 
   saveAiSummary: async ({ request, params }) => {
     const formData = await request.formData();
+    const language = normalizeAiSummaryLanguage(
+      String(formData.get("aiMetadataLanguage") ?? ""),
+    );
     const aiShortSummary = String(formData.get("aiShortSummary") ?? "").trim();
     const aiLongSummary = String(formData.get("aiLongSummary") ?? "").trim();
     const aiKeyPoints = String(formData.get("aiKeyPoints") ?? "")
@@ -112,22 +140,55 @@ export const actions = {
       });
     }
 
+    const status =
+      aiShortSummary || aiLongSummary
+        ? ("GENERATED" as const)
+        : ("NOT_GENERATED" as const);
+    const savedMetadata = {
+      shortSummary: aiShortSummary || null,
+      longSummary: aiLongSummary || null,
+      keyPoints: JSON.stringify(aiKeyPoints),
+      tags: JSON.stringify(aiTags),
+      seoTitle: aiSeoTitle || null,
+      seoDescription: aiSeoDescription || null,
+      detectedLanguage: aiLanguage || null,
+      categorySuggestion: aiCategorySuggestion || null,
+      confidence: aiConfidence,
+      needsHumanReview: aiNeedsHumanReview,
+      status,
+      error: null,
+    };
+
+    await prisma.videoAiMetadata.upsert({
+      where: {
+        videoId_language: {
+          videoId: params.id,
+          language,
+        },
+      },
+      update: savedMetadata,
+      create: {
+        videoId: params.id,
+        language,
+        ...savedMetadata,
+      },
+    });
+
     await prisma.video.update({
       where: { id: params.id },
       data: {
-        aiShortSummary: aiShortSummary || null,
-        aiLongSummary: aiLongSummary || null,
-        aiKeyPoints: JSON.stringify(aiKeyPoints),
-        aiTags: JSON.stringify(aiTags),
-        aiSeoTitle: aiSeoTitle || null,
-        aiSeoDescription: aiSeoDescription || null,
-        aiLanguage: aiLanguage || null,
-        aiCategorySuggestion: aiCategorySuggestion || null,
-        aiConfidence,
-        aiNeedsHumanReview,
-        aiStatus:
-          aiShortSummary || aiLongSummary ? "GENERATED" : "NOT_GENERATED",
-        aiError: null,
+        aiShortSummary: savedMetadata.shortSummary,
+        aiLongSummary: savedMetadata.longSummary,
+        aiKeyPoints: savedMetadata.keyPoints,
+        aiTags: savedMetadata.tags,
+        aiSeoTitle: savedMetadata.seoTitle,
+        aiSeoDescription: savedMetadata.seoDescription,
+        aiLanguage: savedMetadata.detectedLanguage,
+        aiCategorySuggestion: savedMetadata.categorySuggestion,
+        aiConfidence: savedMetadata.confidence,
+        aiNeedsHumanReview: savedMetadata.needsHumanReview,
+        aiStatus: savedMetadata.status,
+        aiError: savedMetadata.error,
       },
     });
 
@@ -137,16 +198,25 @@ export const actions = {
     };
   },
 
-  applyAiSummary: async ({ params }) => {
-    const video = await prisma.video.findUnique({
-      where: { id: params.id },
+  applyAiSummary: async ({ request, params }) => {
+    const formData = await request.formData();
+    const language = normalizeAiSummaryLanguage(
+      String(formData.get("aiMetadataLanguage") ?? ""),
+    );
+    const metadata = await prisma.videoAiMetadata.findUnique({
+      where: {
+        videoId_language: {
+          videoId: params.id,
+          language,
+        },
+      },
     });
 
-    if (!video) {
-      return fail(404, { message: "Video not found." });
+    if (!metadata) {
+      return fail(404, { message: "AI metadata not found." });
     }
 
-    if (!video.aiShortSummary) {
+    if (!metadata.shortSummary) {
       return fail(400, {
         message: "No AI short summary available.",
       });
@@ -155,13 +225,47 @@ export const actions = {
     await prisma.video.update({
       where: { id: params.id },
       data: {
-        summary: video.aiShortSummary,
+        summary: metadata.shortSummary,
       },
     });
 
     return {
       success: true,
       message: "AI short summary copied to public summary.",
+    };
+  },
+
+  applyAiTags: async ({ request, params }) => {
+    const formData = await request.formData();
+    const language = normalizeAiSummaryLanguage(
+      String(formData.get("aiMetadataLanguage") ?? ""),
+    );
+    const metadata = await prisma.videoAiMetadata.findUnique({
+      where: {
+        videoId_language: {
+          videoId: params.id,
+          language,
+        },
+      },
+    });
+
+    if (!metadata) {
+      return fail(404, { message: "AI metadata not found." });
+    }
+
+    const aiTags = parseStoredAiTags(metadata.tags);
+
+    if (!aiTags.length) {
+      return fail(400, {
+        message: "No AI tags available.",
+      });
+    }
+
+    await replaceVideoTags(params.id, aiTags.join(", "));
+
+    return {
+      success: true,
+      message: "AI tags copied to public tags.",
     };
   },
 

@@ -1,6 +1,7 @@
 import { prisma } from "$lib/server/prisma";
 import {
   buildAiSummaryMessages,
+  normalizeAiSummaryLanguage,
   normalizeAiSummary,
   parseJsonObject,
   type GenerateVideoAiSummaryOptions,
@@ -23,6 +24,27 @@ export async function generateVideoAiSummary(
     throw new Error("Video not found");
   }
 
+  const outputLanguage = normalizeAiSummaryLanguage(options.outputLanguage);
+
+  await prisma.videoAiMetadata.upsert({
+    where: {
+      videoId_language: {
+        videoId: video.id,
+        language: outputLanguage,
+      },
+    },
+    update: {
+      status: "GENERATING",
+      error: null,
+    },
+    create: {
+      videoId: video.id,
+      language: outputLanguage,
+      status: "GENERATING",
+      error: null,
+    },
+  });
+
   await prisma.video.update({
     where: { id: video.id },
     data: {
@@ -32,33 +54,74 @@ export async function generateVideoAiSummary(
   });
 
   try {
-    const outputLanguage = options.outputLanguage?.trim() || "fr";
     const responseText = await generateAiSummaryText(
       buildAiSummaryMessages(video, outputLanguage),
     );
     const parsed = normalizeAiSummary(parseJsonObject(responseText));
 
-    return await prisma.video.update({
+    const generatedAt = new Date();
+    const data = {
+      shortSummary: parsed.shortSummary || null,
+      longSummary: parsed.longSummary || null,
+      keyPoints: JSON.stringify(parsed.keyPoints),
+      tags: JSON.stringify(parsed.tags),
+      seoTitle: parsed.seoTitle || null,
+      seoDescription: parsed.seoDescription || null,
+      detectedLanguage: parsed.detectedLanguage,
+      categorySuggestion: parsed.suggestedCategory,
+      confidence: parsed.confidence,
+      needsHumanReview: parsed.needsHumanReview,
+      generatedAt,
+      status: "GENERATED" as const,
+      error: null,
+    };
+
+    const metadata = await prisma.videoAiMetadata.update({
+      where: {
+        videoId_language: {
+          videoId: video.id,
+          language: outputLanguage,
+        },
+      },
+      data,
+    });
+
+    await prisma.video.update({
       where: { id: video.id },
       data: {
-        aiShortSummary: parsed.shortSummary || null,
-        aiLongSummary: parsed.longSummary || null,
-        aiKeyPoints: JSON.stringify(parsed.keyPoints),
-        aiTags: JSON.stringify(parsed.tags),
-        aiSeoTitle: parsed.seoTitle || null,
-        aiSeoDescription: parsed.seoDescription || null,
-        aiLanguage: parsed.detectedLanguage,
-        aiCategorySuggestion: parsed.suggestedCategory,
-        aiConfidence: parsed.confidence,
-        aiNeedsHumanReview: parsed.needsHumanReview,
-        aiGeneratedAt: new Date(),
-        aiStatus: "GENERATED",
-        aiError: null,
+        aiShortSummary: data.shortSummary,
+        aiLongSummary: data.longSummary,
+        aiKeyPoints: data.keyPoints,
+        aiTags: data.tags,
+        aiSeoTitle: data.seoTitle,
+        aiSeoDescription: data.seoDescription,
+        aiLanguage: data.detectedLanguage,
+        aiCategorySuggestion: data.categorySuggestion,
+        aiConfidence: data.confidence,
+        aiNeedsHumanReview: data.needsHumanReview,
+        aiGeneratedAt: data.generatedAt,
+        aiStatus: data.status,
+        aiError: data.error,
       },
     });
+
+    return metadata;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to generate AI summary.";
+
+    await prisma.videoAiMetadata.update({
+      where: {
+        videoId_language: {
+          videoId: video.id,
+          language: outputLanguage,
+        },
+      },
+      data: {
+        status: "FAILED",
+        error: message,
+      },
+    });
 
     await prisma.video.update({
       where: { id: video.id },

@@ -2,13 +2,45 @@
   let { data, form } = $props();
 
   let video = $derived(data.video);
-  let aiKeyPoints = $derived(parseJsonArray(video.aiKeyPoints));
-  let aiTags = $derived(parseJsonArray(video.aiTags));
+  let aiMetadata = $derived(data.aiMetadata);
+  let aiMetadataLanguage = $derived(data.aiMetadataLanguage);
+  let aiShortSummary = $derived(
+    aiMetadata?.shortSummary ?? video.aiShortSummary,
+  );
+  let aiLongSummary = $derived(aiMetadata?.longSummary ?? video.aiLongSummary);
+  let aiSeoTitle = $derived(aiMetadata?.seoTitle ?? video.aiSeoTitle);
+  let aiSeoDescription = $derived(
+    aiMetadata?.seoDescription ?? video.aiSeoDescription,
+  );
+  let aiDetectedLanguage = $derived(
+    aiMetadata?.detectedLanguage ?? video.aiLanguage,
+  );
+  let aiCategorySuggestion = $derived(
+    aiMetadata?.categorySuggestion ?? video.aiCategorySuggestion,
+  );
+  let aiConfidence = $derived(aiMetadata?.confidence ?? video.aiConfidence);
+  let aiNeedsHumanReview = $derived(
+    aiMetadata?.needsHumanReview ?? video.aiNeedsHumanReview,
+  );
+  let aiStatus = $derived(aiMetadata?.status ?? video.aiStatus);
+  let aiError = $derived(aiMetadata?.error ?? video.aiError);
+  let aiKeyPoints = $derived(
+    parseJsonArray(aiMetadata?.keyPoints ?? video.aiKeyPoints),
+  );
+  let aiTags = $derived(parseJsonArray(aiMetadata?.tags ?? video.aiTags));
   let aiKeyPointsText = $derived(aiKeyPoints.join("\n"));
   let aiTagsText = $derived(aiTags.join(", "));
-  let hasAiShortSummary = $derived(Boolean(video.aiShortSummary?.trim()));
+  let publicTags = $derived(
+    video.tags?.map((videoTag) => videoTag.tag.name).join(", ") ?? "",
+  );
+  let hasAiShortSummary = $derived(Boolean(aiShortSummary?.trim()));
+  let hasAiTags = $derived(aiTags.length > 0);
   let aiGeneratedAt = $derived(
-    video.aiGeneratedAt ? new Date(video.aiGeneratedAt).toLocaleString() : "-"
+    aiMetadata?.generatedAt
+      ? new Date(aiMetadata.generatedAt).toLocaleString()
+      : video.aiGeneratedAt
+        ? new Date(video.aiGeneratedAt).toLocaleString()
+        : "-",
   );
 
   function parseJsonArray(value: string | null | undefined): string[] {
@@ -82,6 +114,17 @@
     </div>
 
     <div class="form-row">
+      <label class="label" for="tags">Tags</label>
+      <input
+        class="input"
+        id="tags"
+        name="tags"
+        value={publicTags}
+        placeholder="reprise, amharic, diaspora"
+      />
+    </div>
+
+    <div class="form-row">
       <label class="label" for="status">Status</label>
       <select class="select" id="status" name="status">
         <option value="DRAFT" selected={video.status === "DRAFT"}>Draft</option>
@@ -134,10 +177,24 @@
 <section class="panel section">
   <h2>AI Summary</h2>
 
+  <div class="pills">
+    {#each ["fr", "en", "am"] as language}
+      <a
+        class:active={aiMetadataLanguage === language}
+        class="pill"
+        href={`?aiLanguage=${language}`}>{language}</a
+      >
+    {/each}
+  </div>
+
   <div class="grid" style="gap: 0.75rem">
     <p>
+      <strong>Metadata language:</strong>
+      {aiMetadataLanguage}
+    </p>
+    <p>
       <strong>Status:</strong>
-      {video.aiStatus}
+      {aiStatus}
     </p>
     <p>
       <strong>Generated:</strong>
@@ -145,26 +202,28 @@
     </p>
     <p>
       <strong>Needs human review:</strong>
-      {video.aiNeedsHumanReview ? "Yes" : "No"}
+      {aiNeedsHumanReview ? "Yes" : "No"}
     </p>
     <p>
       <strong>Confidence:</strong>
-      {video.aiConfidence ?? "-"}
+      {aiConfidence ?? "-"}
     </p>
   </div>
 
-  {#if video.aiError}
-    <div class="alert">{video.aiError}</div>
+  {#if aiError}
+    <div class="alert">{aiError}</div>
   {/if}
 
   <form method="POST" action="?/saveAiSummary" class="form">
+    <input type="hidden" name="aiMetadataLanguage" value={aiMetadataLanguage} />
+
     <div class="form-row">
       <label class="label" for="aiShortSummary">Short summary</label>
       <textarea
         class="textarea"
         id="aiShortSummary"
         name="aiShortSummary"
-        rows="4">{video.aiShortSummary || ""}</textarea
+        rows="4">{aiShortSummary || ""}</textarea
       >
     </div>
 
@@ -174,7 +233,7 @@
         class="textarea"
         id="aiLongSummary"
         name="aiLongSummary"
-        rows="7">{video.aiLongSummary || ""}</textarea
+        rows="7">{aiLongSummary || ""}</textarea
       >
     </div>
 
@@ -199,7 +258,7 @@
         class="input"
         id="aiSeoTitle"
         name="aiSeoTitle"
-        value={video.aiSeoTitle || ""}
+        value={aiSeoTitle || ""}
       />
     </div>
 
@@ -209,7 +268,7 @@
         class="textarea"
         id="aiSeoDescription"
         name="aiSeoDescription"
-        rows="3">{video.aiSeoDescription || ""}</textarea
+        rows="3">{aiSeoDescription || ""}</textarea
       >
     </div>
 
@@ -217,12 +276,12 @@
       <label class="label" for="aiLanguage">Detected language</label>
       <select class="select" id="aiLanguage" name="aiLanguage">
         <option value="">Not defined</option>
-        <option value="am" selected={video.aiLanguage === "am"}>am</option>
-        <option value="om" selected={video.aiLanguage === "om"}>om</option>
-        <option value="ti" selected={video.aiLanguage === "ti"}>ti</option>
-        <option value="en" selected={video.aiLanguage === "en"}>en</option>
-        <option value="fr" selected={video.aiLanguage === "fr"}>fr</option>
-        <option value="unknown" selected={video.aiLanguage === "unknown"}
+        <option value="am" selected={aiDetectedLanguage === "am"}>am</option>
+        <option value="om" selected={aiDetectedLanguage === "om"}>om</option>
+        <option value="ti" selected={aiDetectedLanguage === "ti"}>ti</option>
+        <option value="en" selected={aiDetectedLanguage === "en"}>en</option>
+        <option value="fr" selected={aiDetectedLanguage === "fr"}>fr</option>
+        <option value="unknown" selected={aiDetectedLanguage === "unknown"}
           >unknown</option
         >
       </select>
@@ -239,7 +298,7 @@
         {#each ["News", "Music", "Drama", "Comedy", "Religion", "Diaspora", "Business", "Culture", "Sport", "Other"] as category}
           <option
             value={category}
-            selected={video.aiCategorySuggestion === category}>{category}</option
+            selected={aiCategorySuggestion === category}>{category}</option
           >
         {/each}
       </select>
@@ -255,7 +314,7 @@
         min="0"
         max="1"
         step="0.01"
-        value={video.aiConfidence ?? ""}
+        value={aiConfidence ?? ""}
       />
     </div>
 
@@ -263,7 +322,7 @@
       <input
         type="checkbox"
         name="aiNeedsHumanReview"
-        checked={video.aiNeedsHumanReview}
+        checked={aiNeedsHumanReview}
       />
       Needs human review
     </label>
@@ -275,9 +334,9 @@
     <div class="form-row">
       <label class="label" for="outputLanguage">Output language</label>
       <select class="select" id="outputLanguage" name="outputLanguage">
-        <option value="fr">fr</option>
-        <option value="en">en</option>
-        <option value="am">am</option>
+        <option value="fr" selected={aiMetadataLanguage === "fr"}>fr</option>
+        <option value="en" selected={aiMetadataLanguage === "en"}>en</option>
+        <option value="am" selected={aiMetadataLanguage === "am"}>am</option>
       </select>
     </div>
 
@@ -285,8 +344,20 @@
   </form>
 
   <form method="POST" action="?/applyAiSummary" class="form">
-    <button class="button secondary" type="submit" disabled={!hasAiShortSummary}>
+    <input type="hidden" name="aiMetadataLanguage" value={aiMetadataLanguage} />
+    <button
+      class="button secondary"
+      type="submit"
+      disabled={!hasAiShortSummary}
+    >
       Copy AI short summary to public summary
+    </button>
+  </form>
+
+  <form method="POST" action="?/applyAiTags" class="form">
+    <input type="hidden" name="aiMetadataLanguage" value={aiMetadataLanguage} />
+    <button class="button secondary" type="submit" disabled={!hasAiTags}>
+      Copy AI tags to public tags
     </button>
   </form>
 </section>
