@@ -145,9 +145,12 @@ Flux admin :
 
 Les metadonnees IA sont stockees par video et par langue de site. Generer les
 metadonnees `fr` n'ecrase donc pas les metadonnees `en`, et inversement.
+Chaque metadata IA peut aussi stocker un slug SEO localise. Les pages publiques
+localisees utilisent ces slugs pour construire des URLs par langue.
 
-La page publique affiche uniquement `summary`. Les champs `ai*` restent reserves
-a l'admin tant que le resume court n'est pas copie manuellement.
+Les anciennes pages publiques affichent encore `summary` pour compatibilite. Les
+routes localisees `/[lang]/videos/[localizedSlug]` affichent la metadata IA de la
+langue active quand elle existe, avec fallback sur les champs publics de la video.
 
 ## Routes
 
@@ -166,6 +169,39 @@ a l'admin tant que le resume court n'est pas copie manuellement.
  /newsletter
  /sitemap.xml
  /robots.txt
+```
+
+Routes localisees SEO :
+
+```txt
+ /fr
+ /en
+ /am
+ /fr/dernieres-videos
+ /fr/tendances
+ /en/latest
+ /en/trending
+ /am/addis-videos
+ /am/tewedaj
+ /[lang]/videos/[localizedSlug]
+ /fr/categories/[slug]
+ /fr/etiquettes/[slug]
+ /fr/chaines/[slug]
+ /fr/recherche
+ /fr/proposer-video
+ /fr/lettre-info
+ /en/categories/[slug]
+ /en/tags/[slug]
+ /en/channels/[slug]
+ /en/search
+ /en/submit-video
+ /en/newsletter
+ /am/kifloch/[slug]
+ /am/miliktoch/[slug]
+ /am/channeloch/[slug]
+ /am/felgi
+ /am/video-lak
+ /am/newsletter
 ```
 
 ### Admin

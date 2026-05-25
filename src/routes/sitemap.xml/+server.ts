@@ -1,5 +1,13 @@
 import { prisma } from "$lib/server/prisma";
 import { env } from "$env/dynamic/private";
+import {
+  getLocalizedCategoryPath,
+  getLocalizedChannelPath,
+  getLocalizedStaticPath,
+  getLocalizedTagPath,
+  getLocalizedVideoPath,
+  supportedLanguages,
+} from "$lib/i18n";
 
 export const GET = async () => {
   const siteUrl = env.PUBLIC_SITE_URL || "http://localhost:5173";
@@ -7,7 +15,17 @@ export const GET = async () => {
   const [videos, categories, channels, tags] = await Promise.all([
     prisma.video.findMany({
       where: { status: "PUBLISHED" },
-      select: { slug: true, updatedAt: true },
+      select: {
+        slug: true,
+        updatedAt: true,
+        aiMetadata: {
+          select: {
+            language: true,
+            slug: true,
+            updatedAt: true,
+          },
+        },
+      },
     }),
     prisma.category.findMany({
       select: { slug: true, updatedAt: true },
@@ -30,25 +48,75 @@ export const GET = async () => {
   ]);
 
   const urls = [
-    { loc: siteUrl, lastmod: new Date() },
-    { loc: `${siteUrl}/latest`, lastmod: new Date() },
-    { loc: `${siteUrl}/trending`, lastmod: new Date() },
-    ...videos.map((video) => ({
-      loc: `${siteUrl}/video/${video.slug}`,
-      lastmod: video.updatedAt,
+    ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}/${language}`,
+      lastmod: new Date(),
     })),
+    ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}${getLocalizedStaticPath(language, "latest")}`,
+      lastmod: new Date(),
+    })),
+    ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}${getLocalizedStaticPath(language, "trending")}`,
+      lastmod: new Date(),
+    })),
+    ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}${getLocalizedStaticPath(language, "search")}`,
+      lastmod: new Date(),
+    })),
+    ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}${getLocalizedStaticPath(language, "submitVideo")}`,
+      lastmod: new Date(),
+    })),
+    ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}${getLocalizedStaticPath(language, "newsletter")}`,
+      lastmod: new Date(),
+    })),
+    ...videos.flatMap((video) =>
+      supportedLanguages.map((language) => {
+        const metadata = video.aiMetadata.find(
+          (metadata) => metadata.language === language,
+        );
+
+        return {
+          loc: `${siteUrl}${getLocalizedVideoPath(
+            language,
+            metadata?.slug || video.slug,
+          )}`,
+          lastmod: metadata?.updatedAt ?? video.updatedAt,
+        };
+      }),
+    ),
     ...categories.map((category) => ({
       loc: `${siteUrl}/category/${category.slug}`,
       lastmod: category.updatedAt,
     })),
+    ...supportedLanguages.flatMap((language) =>
+      categories.map((category) => ({
+        loc: `${siteUrl}${getLocalizedCategoryPath(language, category.slug)}`,
+        lastmod: category.updatedAt,
+      })),
+    ),
     ...channels.map((channel) => ({
       loc: `${siteUrl}/channel/${channel.slug}`,
       lastmod: channel.updatedAt,
     })),
+    ...supportedLanguages.flatMap((language) =>
+      channels.map((channel) => ({
+        loc: `${siteUrl}${getLocalizedChannelPath(language, channel.slug)}`,
+        lastmod: channel.updatedAt,
+      })),
+    ),
     ...tags.map((tag) => ({
       loc: `${siteUrl}/tag/${tag.slug}`,
       lastmod: tag.updatedAt,
     })),
+    ...supportedLanguages.flatMap((language) =>
+      tags.map((tag) => ({
+        loc: `${siteUrl}${getLocalizedTagPath(language, tag.slug)}`,
+        lastmod: tag.updatedAt,
+      })),
+    ),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
