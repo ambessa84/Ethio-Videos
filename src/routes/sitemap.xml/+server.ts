@@ -4,7 +4,7 @@ import { env } from "$env/dynamic/private";
 export const GET = async () => {
   const siteUrl = env.PUBLIC_SITE_URL || "http://localhost:5173";
 
-  const [videos, categories, channels] = await Promise.all([
+  const [videos, categories, channels, tags] = await Promise.all([
     prisma.video.findMany({
       where: { status: "PUBLISHED" },
       select: { slug: true, updatedAt: true },
@@ -13,6 +13,18 @@ export const GET = async () => {
       select: { slug: true, updatedAt: true },
     }),
     prisma.channel.findMany({
+      select: { slug: true, updatedAt: true },
+    }),
+    prisma.tag.findMany({
+      where: {
+        videos: {
+          some: {
+            video: {
+              status: "PUBLISHED",
+            },
+          },
+        },
+      },
       select: { slug: true, updatedAt: true },
     }),
   ]);
@@ -32,6 +44,10 @@ export const GET = async () => {
     ...channels.map((channel) => ({
       loc: `${siteUrl}/channel/${channel.slug}`,
       lastmod: channel.updatedAt,
+    })),
+    ...tags.map((tag) => ({
+      loc: `${siteUrl}/tag/${tag.slug}`,
+      lastmod: tag.updatedAt,
     })),
   ];
 

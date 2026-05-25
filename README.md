@@ -136,11 +136,15 @@ pnpm prisma generate
 Flux admin :
 
 1. Va dans `/admin/videos/[id]/edit`.
-2. Clique sur `Generate AI Summary`.
-3. Verifie le resume court, le resume long, les points cles, les tags, les
+2. Choisis la langue de metadata IA (`fr`, `en` ou `am`).
+3. Clique sur `Generate AI Summary`.
+4. Verifie le resume court, le resume long, les points cles, les tags, les
    champs SEO, la confiance et le flag de revue humaine.
-4. Clique sur `Copy AI short summary to public summary` pour copier le resume
+5. Clique sur `Copy AI short summary to public summary` pour copier le resume
    court IA dans le champ public `summary`.
+
+Les metadonnees IA sont stockees par video et par langue de site. Generer les
+metadonnees `fr` n'ecrase donc pas les metadonnees `en`, et inversement.
 
 La page publique affiche uniquement `summary`. Les champs `ai*` restent reserves
 a l'admin tant que le resume court n'est pas copie manuellement.
@@ -154,6 +158,7 @@ a l'admin tant que le resume court n'est pas copie manuellement.
  /latest
  /trending
  /category/[slug]
+ /tag/[slug]
  /video/[slug]
  /channel/[slug]
  /search
@@ -197,7 +202,6 @@ Pour utiliser l'API YouTube Data v3 :
 
 - Import automatique depuis des chaînes YouTube.
 - Résumés IA.
-- Tags.
 - Publicités directes.
 - Newsletter automatisée.
 - Pages événements diaspora.

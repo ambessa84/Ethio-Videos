@@ -63,6 +63,16 @@
       {/if}
     </p>
 
+    {#if video.tags.length}
+      <div class="pills section">
+        {#each video.tags as videoTag}
+          <a class="pill" href={`/tag/${videoTag.tag.slug}`}>
+            {videoTag.tag.name}
+          </a>
+        {/each}
+      </div>
+    {/if}
+
     {#if video.summary}
       <section class="panel section">
         <h2>Résumé</h2>

@@ -25,6 +25,8 @@ export type AiSummaryProvider = "openai" | "ollama";
 export const fallbackOpenAiModel = "gpt-5.4-mini";
 export const fallbackOllamaBaseUrl = "http://localhost:11434";
 export const fallbackOllamaModel = "qwen2.5:3b";
+export const fallbackAiSummaryLanguage = "fr";
+export const supportedAiSummaryLanguages = ["fr", "en", "am"] as const;
 
 export const responseSchema = {
   type: "object",
@@ -82,6 +84,16 @@ export function resolveAiProvider(
   value: string | undefined,
 ): AiSummaryProvider {
   return value?.trim().toLowerCase() === "openai" ? "openai" : "ollama";
+}
+
+export function normalizeAiSummaryLanguage(value: string | undefined): string {
+  const language = value?.trim().toLowerCase();
+
+  return supportedAiSummaryLanguages.includes(
+    language as (typeof supportedAiSummaryLanguages)[number],
+  )
+    ? (language as string)
+    : fallbackAiSummaryLanguage;
 }
 
 export function getOutputText(response: unknown) {
@@ -177,30 +189,52 @@ export function buildPromptInput(video: {
   };
 }
 
+function getOutputLanguageName(language: string) {
+  switch (normalizeAiSummaryLanguage(language)) {
+    case "en":
+      return "English";
+    case "am":
+      return "Amharic";
+    case "fr":
+    default:
+      return "French";
+  }
+}
+
 export function buildAiSummaryMessages(
   video: Parameters<typeof buildPromptInput>[0],
   outputLanguage = "fr",
 ): AiSummaryMessage[] {
+  const normalizedOutputLanguage = normalizeAiSummaryLanguage(outputLanguage);
+  const outputLanguageName = getOutputLanguageName(normalizedOutputLanguage);
+
   return [
     {
       role: "system",
       content:
-        "Tu es un assistant editorial pour un site de curation de videos YouTube ethiopiennes. Tu produis un resume prudent uniquement a partir des metadonnees disponibles. Tu ne dois pas inventer d'informations. Tu dois indiquer clairement quand les informations sont insuffisantes. Tu dois retourner uniquement un JSON valide.",
+        "You are an editorial assistant for an Ethiopian YouTube video curation website. You write cautious metadata using only the provided YouTube metadata. Do not invent information. Clearly state when the available metadata is insufficient. Return only valid JSON.",
     },
     {
       role: "user",
-      content: `Genere un resume IA dans la langue "${outputLanguage}".
+      content: `Generate AI metadata for site language "${normalizedOutputLanguage}" (${outputLanguageName}).
 
-Contraintes editoriales :
-- N'utilise aucune transcription audio, caption ou information externe.
-- Si la description YouTube est vide ou trop courte, dis-le dans le resume.
-- Ne transforme pas des hypotheses en faits.
-- Ne dis pas "la video explique" si les donnees ne permettent pas de le savoir.
-- Utilise plutot "D'apres le titre et la description..." quand c'est pertinent.
-- En francais, traduis "cover" au sens musical par "reprise", pas par "cover".
-- Mets needsHumanReview a true si le sujet touche a la politique, religion, conflit, sante, ethnicite, crime, violence, accusations, conseil financier, breaking news, ou si les informations sont insuffisantes.
+Language rules:
+- Every generated text field MUST be written in ${outputLanguageName}: shortSummary, longSummary, keyPoints, tags, seoTitle, and seoDescription.
+- Do not answer in French unless the requested site language is "fr".
+- If the requested site language is "en", all generated text fields must be English.
+- If the requested site language is "am", all generated text fields must be Amharic when possible.
+- The detectedLanguage field describes the original video metadata language, not the output language.
 
-JSON attendu :
+Editorial constraints:
+- Do not use audio transcripts, captions, or external information.
+- If the YouTube description is empty or too short, say that in the requested site language.
+- Do not turn assumptions into facts.
+- Do not say "the video explains" if the metadata does not support it.
+- When useful, phrase uncertainty as "Based on the title and description..." in the requested site language.
+- In French output, translate musical "cover" as "reprise", not "cover".
+- Set needsHumanReview to true for politics, religion, conflict, health, ethnicity, crime, violence, accusations, financial advice, breaking news, or insufficient information.
+
+Expected JSON:
 {
   "shortSummary": "2 a 3 phrases maximum",
   "longSummary": "1 a 2 paragraphes maximum",
@@ -214,7 +248,7 @@ JSON attendu :
   "needsHumanReview": true
 }
 
-Input disponible :
+Available input:
 ${JSON.stringify(buildPromptInput(video), null, 2)}`,
     },
   ];

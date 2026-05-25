@@ -7,6 +7,10 @@ export const load = async ({ params }) => {
     include: {
       channel: true,
       category: true,
+      tags: {
+        include: { tag: true },
+        orderBy: { tag: { name: "asc" } },
+      },
     },
   });
 
