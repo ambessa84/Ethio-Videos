@@ -41,6 +41,7 @@ describe("normalizeAiSummary", () => {
       }),
     ).toEqual({
       shortSummary: "Short",
+      slug: "",
       longSummary: "",
       keyPoints: ["one", "two"],
       tags: [],
@@ -103,6 +104,7 @@ describe("buildAiSummaryMessages", () => {
 
     expect(userMessage).toContain('site language "en" (English)');
     expect(userMessage).toContain("all generated text fields must be English");
+    expect(userMessage).toContain("slug field must be short");
     expect(userMessage).toContain("Do not answer in French");
   });
 

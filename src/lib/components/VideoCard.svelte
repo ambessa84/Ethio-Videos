@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { formatNumber } from '$lib/utils';
+  import { getLocalizedVideoPath, type SiteLanguage } from "$lib/i18n";
+  import { formatNumber } from "$lib/utils";
 
   type Video = {
     slug: string;
+    localizedSlug?: string | null;
     title: string;
+    localizedTitle?: string | null;
     thumbnailUrl?: string | null;
     viewCount?: number | null;
     channel?: {
@@ -16,18 +19,21 @@
     } | null;
   };
 
-  let { video } = $props<{ video: Video }>();
+  let { video, lang } = $props<{ video: Video; lang?: SiteLanguage }>();
+  let title = $derived(video.localizedTitle || video.title);
+  let slug = $derived(video.localizedSlug || video.slug);
+  let href = $derived(lang ? getLocalizedVideoPath(lang, slug) : `/video/${slug}`);
 </script>
 
-<a href={`/video/${video.slug}`} class="card">
+<a href={href} class="card">
   <img
     class="video-thumb"
-    src={video.thumbnailUrl || '/placeholder-video.svg'}
-    alt={video.title}
+    src={video.thumbnailUrl || "/placeholder-video.svg"}
+    alt={title}
     loading="lazy"
   />
 
-  <h3 class="video-title line-clamp-2">{video.title}</h3>
+  <h3 class="video-title line-clamp-2">{title}</h3>
 
   <p class="video-meta">
     {#if video.channel}

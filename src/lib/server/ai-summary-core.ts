@@ -3,6 +3,7 @@ export type GenerateVideoAiSummaryOptions = {
 };
 
 export type AiSummaryResponse = {
+  slug: string;
   shortSummary: string;
   longSummary: string;
   keyPoints: string[];
@@ -33,6 +34,7 @@ export const responseSchema = {
   additionalProperties: false,
   properties: {
     shortSummary: { type: "string" },
+    slug: { type: "string" },
     longSummary: { type: "string" },
     keyPoints: {
       type: "array",
@@ -68,6 +70,7 @@ export const responseSchema = {
   },
   required: [
     "shortSummary",
+    "slug",
     "longSummary",
     "keyPoints",
     "tags",
@@ -156,6 +159,7 @@ export function normalizeAiSummary(value: unknown): AiSummaryResponse {
 
   return {
     shortSummary: asString(record.shortSummary),
+    slug: asString(record.slug),
     longSummary: asString(record.longSummary),
     keyPoints: asStringArray(record.keyPoints),
     tags: asStringArray(record.tags),
@@ -224,6 +228,8 @@ Language rules:
 - If the requested site language is "en", all generated text fields must be English.
 - If the requested site language is "am", all generated text fields must be Amharic when possible.
 - The detectedLanguage field describes the original video metadata language, not the output language.
+- The slug field must be short, stable, SEO-friendly, and written for ${outputLanguageName} when possible.
+- The slug field must contain only words separated by hyphens. Do not include URL paths, domains, quotes, or punctuation.
 
 Editorial constraints:
 - Do not use audio transcripts, captions, or external information.
@@ -237,6 +243,7 @@ Editorial constraints:
 Expected JSON:
 {
   "shortSummary": "2 a 3 phrases maximum",
+  "slug": "localized-url-friendly-seo-slug",
   "longSummary": "1 a 2 paragraphes maximum",
   "keyPoints": ["point 1", "point 2", "point 3"],
   "tags": ["tag1", "tag2", "tag3"],

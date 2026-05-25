@@ -4,6 +4,7 @@
   let video = $derived(data.video);
   let aiMetadata = $derived(data.aiMetadata);
   let aiMetadataLanguage = $derived(data.aiMetadataLanguage);
+  let aiSlug = $derived(aiMetadata?.slug ?? video.slug);
   let aiShortSummary = $derived(
     aiMetadata?.shortSummary ?? video.aiShortSummary,
   );
@@ -216,6 +217,11 @@
 
   <form method="POST" action="?/saveAiSummary" class="form">
     <input type="hidden" name="aiMetadataLanguage" value={aiMetadataLanguage} />
+
+    <div class="form-row">
+      <label class="label" for="aiSlug">Localized slug</label>
+      <input class="input" id="aiSlug" name="aiSlug" value={aiSlug} />
+    </div>
 
     <div class="form-row">
       <label class="label" for="aiShortSummary">Short summary</label>

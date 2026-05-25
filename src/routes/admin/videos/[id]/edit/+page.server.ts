@@ -1,5 +1,6 @@
 import { error, fail, redirect } from "@sveltejs/kit";
 import { prisma } from "$lib/server/prisma";
+import { createUniqueAiMetadataSlug } from "$lib/server/ai-metadata-slugs";
 import { createSlug } from "$lib/server/slug";
 import { generateVideoAiSummary } from "$lib/server/ai-summary";
 import { normalizeAiSummaryLanguage } from "$lib/server/ai-summary-core";
@@ -109,6 +110,7 @@ export const actions = {
     const language = normalizeAiSummaryLanguage(
       String(formData.get("aiMetadataLanguage") ?? ""),
     );
+    const aiSlug = String(formData.get("aiSlug") ?? "").trim();
     const aiShortSummary = String(formData.get("aiShortSummary") ?? "").trim();
     const aiLongSummary = String(formData.get("aiLongSummary") ?? "").trim();
     const aiKeyPoints = String(formData.get("aiKeyPoints") ?? "")
@@ -145,6 +147,11 @@ export const actions = {
         ? ("GENERATED" as const)
         : ("NOT_GENERATED" as const);
     const savedMetadata = {
+      slug: await createUniqueAiMetadataSlug(
+        aiSlug || aiSeoTitle || aiShortSummary || params.id,
+        language,
+        params.id,
+      ),
       shortSummary: aiShortSummary || null,
       longSummary: aiLongSummary || null,
       keyPoints: JSON.stringify(aiKeyPoints),
