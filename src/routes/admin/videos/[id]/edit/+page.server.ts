@@ -4,6 +4,7 @@ import { createUniqueAiMetadataSlug } from "$lib/server/ai-metadata-slugs";
 import { createSlug } from "$lib/server/slug";
 import { generateVideoAiSummary } from "$lib/server/ai-summary";
 import { normalizeAiSummaryLanguage } from "$lib/server/ai-summary-core";
+import { getMissingLocalizedPublicationFields } from "$lib/server/localized-publication";
 import { parseStoredAiTags, replaceVideoTags } from "$lib/server/tags";
 
 export const load = async ({ params, url }) => {
@@ -55,32 +56,71 @@ export const actions = {
     const status = String(formData.get("status") ?? "DRAFT");
     const isFeatured = formData.get("isFeatured") === "on";
     const tags = String(formData.get("tags") ?? "");
+    const normalizedStatus =
+      status === "PUBLISHED"
+        ? ("PUBLISHED" as const)
+        : status === "ARCHIVED"
+          ? ("ARCHIVED" as const)
+          : ("DRAFT" as const);
 
     if (!title) {
       return fail(400, { message: "Title is required." });
     }
 
-    await prisma.video.update({
-      where: { id: params.id },
-      data: {
-        title,
-        slug: slug || createSlug(title),
-        summary: summary || null,
-        categoryId: categoryId || null,
-        language: language || null,
-        status:
-          status === "PUBLISHED"
-            ? "PUBLISHED"
-            : status === "ARCHIVED"
-              ? "ARCHIVED"
-              : "DRAFT",
-        isFeatured,
-      },
-    });
+    const now = new Date();
+    const [, publishedMetadata] = await prisma.$transaction([
+      prisma.video.update({
+        where: { id: params.id },
+        data: {
+          title,
+          slug: slug || createSlug(title),
+          summary: summary || null,
+          categoryId: categoryId || null,
+          language: language || null,
+          status: normalizedStatus,
+          isFeatured,
+        },
+      }),
+      normalizedStatus === "PUBLISHED"
+        ? prisma.videoAiMetadata.updateMany({
+            where: {
+              videoId: params.id,
+              localizedStatus: "DRAFT",
+              slug: { not: null },
+              shortSummary: { not: null },
+              seoTitle: { not: null },
+              seoDescription: { not: null },
+            },
+            data: {
+              localizedStatus: "PUBLISHED",
+              publishedAt: now,
+            },
+          })
+        : prisma.videoAiMetadata.updateMany({
+            where: {
+              videoId: params.id,
+              localizedStatus: "PUBLISHED",
+            },
+            data: {
+              localizedStatus: "DRAFT",
+              publishedAt: null,
+            },
+          }),
+    ]);
+
+    const message =
+      normalizedStatus === "PUBLISHED" && publishedMetadata.count > 0
+        ? `Saved. Published ${publishedMetadata.count} localized metadata set${publishedMetadata.count > 1 ? "s" : ""}.`
+        : normalizedStatus === "PUBLISHED"
+          ? "Saved. Generate and publish AI metadata to make this video visible on localized public pages."
+          : "Saved.";
 
     await replaceVideoTags(params.id, tags);
 
-    return { success: true };
+    return {
+      success: true,
+      message,
+    };
   },
 
   generateAiSummary: async ({ request, params }) => {
@@ -147,14 +187,12 @@ export const actions = {
     }
 
     if (localizedStatus === "PUBLISHED") {
-      const missingFields = [
-        [aiSlug, "localized slug"],
-        [aiShortSummary, "short summary"],
-        [aiSeoTitle, "SEO title"],
-        [aiSeoDescription, "SEO description"],
-      ]
-        .filter(([value]) => !value)
-        .map(([, label]) => label);
+      const missingFields = getMissingLocalizedPublicationFields({
+        slug: aiSlug,
+        shortSummary: aiShortSummary,
+        seoTitle: aiSeoTitle,
+        seoDescription: aiSeoDescription,
+      });
 
       if (missingFields.length) {
         return fail(400, {

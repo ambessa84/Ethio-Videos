@@ -166,7 +166,7 @@
   <h2>AI Summary</h2>
 
   <div class="pills">
-    {#each ["fr", "en", "am"] as language}
+    {#each ["en", "fr", "am"] as language}
       <a
         class:active={aiMetadataLanguage === language}
         class="pill"
@@ -339,8 +339,8 @@
     <div class="form-row">
       <label class="label" for="outputLanguage">Output language</label>
       <select class="select" id="outputLanguage" name="outputLanguage">
-        <option value="fr" selected={aiMetadataLanguage === "fr"}>fr</option>
         <option value="en" selected={aiMetadataLanguage === "en"}>en</option>
+        <option value="fr" selected={aiMetadataLanguage === "fr"}>fr</option>
         <option value="am" selected={aiMetadataLanguage === "am"}>am</option>
       </select>
     </div>

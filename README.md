@@ -145,6 +145,12 @@ Flux admin :
 6. Clique sur `Copy AI short summary to public summary` si tu veux aussi copier
    le resume court IA dans l'ancien champ public `summary`.
 
+Le `Status` du formulaire principal publie la video dans le catalogue admin. La
+visibilite publique par langue repose sur les metadonnees IA publiees. Quand une
+video passe en `Published`, les metadonnees IA completes deja generees sont
+publiees automatiquement pour leurs langues. Une langue sans metadata IA complete
+reste masquee jusqu'a generation et publication.
+
 Les metadonnees IA sont stockees par video et par langue de site. Generer les
 metadonnees `fr` n'ecrase donc pas les metadonnees `en`, et inversement.
 Chaque metadata IA peut aussi stocker un slug SEO localise. Les pages publiques
@@ -177,6 +183,7 @@ etre visible en `fr` sans etre encore publiee en `en` ou `am`.
 Routes localisees SEO :
 
 ```txt
+ / -> /en
  /fr
  /en
  /am
@@ -206,6 +213,10 @@ Routes localisees SEO :
  /am/video-lak
  /am/newsletter
 ```
+
+La langue par defaut du site est `en`. Les URLs sans langue ou avec une langue
+non supportee retombent donc sur l'anglais, et la generation IA choisit aussi
+`en` par defaut quand aucune langue de sortie n'est fournie.
 
 ### Admin
 

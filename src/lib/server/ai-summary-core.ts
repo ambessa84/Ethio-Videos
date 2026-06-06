@@ -26,7 +26,7 @@ export type AiSummaryProvider = "openai" | "ollama";
 export const fallbackOpenAiModel = "gpt-5.4-mini";
 export const fallbackOllamaBaseUrl = "http://localhost:11434";
 export const fallbackOllamaModel = "qwen2.5:3b";
-export const fallbackAiSummaryLanguage = "fr";
+export const fallbackAiSummaryLanguage = "en";
 export const supportedAiSummaryLanguages = ["fr", "en", "am"] as const;
 
 export const responseSchema = {
@@ -207,7 +207,7 @@ function getOutputLanguageName(language: string) {
 
 export function buildAiSummaryMessages(
   video: Parameters<typeof buildPromptInput>[0],
-  outputLanguage = "fr",
+  outputLanguage = fallbackAiSummaryLanguage,
 ): AiSummaryMessage[] {
   const normalizedOutputLanguage = normalizeAiSummaryLanguage(outputLanguage);
   const outputLanguageName = getOutputLanguageName(normalizedOutputLanguage);
