@@ -84,6 +84,26 @@ curl -H "Authorization: Bearer change_this_secret" http://localhost:5173/api/cro
 L'endpoint cron peut être appelé par Vercel Cron, GitHub Actions ou un cron serveur.
 Configure `CRON_SECRET` dans l'environnement de production.
 
+## Changelog
+
+Le projet utilise Changesets pour preparer les notes de version et generer
+`CHANGELOG.md`.
+
+Pour documenter une feature ou un fix avant merge :
+
+```bash
+pnpm changeset
+```
+
+Pour generer le changelog et mettre a jour la version du projet :
+
+```bash
+pnpm release:changelog
+```
+
+Le projet est une application privee : Changesets est utilise ici pour le
+changelog et la version, pas pour publier un package npm.
+
 ## AI summaries
 
 La Phase 1 genere des resumes IA uniquement depuis les metadonnees YouTube deja
