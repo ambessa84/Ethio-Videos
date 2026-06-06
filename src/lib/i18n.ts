@@ -1,7 +1,7 @@
 export const supportedLanguages = ["fr", "en", "am"] as const;
 export type SiteLanguage = (typeof supportedLanguages)[number];
 
-export const defaultLanguage: SiteLanguage = "fr";
+export const defaultLanguage: SiteLanguage = "en";
 
 export const languageLabels: Record<SiteLanguage, string> = {
   fr: "FR",

@@ -80,6 +80,8 @@ export async function generateVideoAiSummary(
       needsHumanReview: parsed.needsHumanReview,
       generatedAt,
       status: "GENERATED" as const,
+      localizedStatus: "DRAFT" as const,
+      publishedAt: null,
       error: null,
     };
 

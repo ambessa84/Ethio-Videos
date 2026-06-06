@@ -16,17 +16,13 @@ export const load = async ({ params }) => {
   const video = await prisma.video.findFirst({
     where: {
       status: "PUBLISHED",
-      OR: [
-        { slug: params.slug },
-        {
-          aiMetadata: {
-            some: {
-              language: lang,
-              slug: params.slug,
-            },
-          },
+      aiMetadata: {
+        some: {
+          language: lang,
+          localizedStatus: "PUBLISHED",
+          slug: params.slug,
         },
-      ],
+      },
     },
     include: {
       channel: true,
@@ -49,6 +45,12 @@ export const load = async ({ params }) => {
       status: "PUBLISHED",
       id: { not: video.id },
       ...(video.categoryId ? { categoryId: video.categoryId } : {}),
+      aiMetadata: {
+        some: {
+          language: lang,
+          localizedStatus: "PUBLISHED",
+        },
+      },
     },
     include: {
       channel: true,
@@ -62,12 +64,11 @@ export const load = async ({ params }) => {
   });
 
   const languageAlternates = Object.fromEntries(
-    supportedLanguages.map((language) => {
+    supportedLanguages.flatMap((language) => {
       const metadata = getVideoMetadataForLanguage(video, language);
-      return [
-        language,
-        getLocalizedVideoPath(language, metadata?.slug || video.slug),
-      ];
+      return metadata?.slug
+        ? [[language, getLocalizedVideoPath(language, metadata.slug)]]
+        : [];
     }),
   );
 

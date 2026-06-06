@@ -81,10 +81,10 @@ describe("normalizeAiSummaryLanguage", () => {
     expect(normalizeAiSummaryLanguage("am")).toBe("am");
   });
 
-  it("falls back to French for missing or unsupported languages", () => {
-    expect(normalizeAiSummaryLanguage(undefined)).toBe("fr");
-    expect(normalizeAiSummaryLanguage("")).toBe("fr");
-    expect(normalizeAiSummaryLanguage("de")).toBe("fr");
+  it("falls back to English for missing or unsupported languages", () => {
+    expect(normalizeAiSummaryLanguage(undefined)).toBe("en");
+    expect(normalizeAiSummaryLanguage("")).toBe("en");
+    expect(normalizeAiSummaryLanguage("de")).toBe("en");
   });
 });
 

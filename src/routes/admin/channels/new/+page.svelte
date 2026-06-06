@@ -34,10 +34,10 @@
     <label class="label" for="defaultLanguage">Default language</label>
     <select class="select" id="defaultLanguage" name="defaultLanguage">
       <option value="">Not defined</option>
+      <option value="en" selected>English</option>
       <option value="am">Amharic</option>
       <option value="om">Oromo</option>
       <option value="ti">Tigrinya</option>
-      <option value="en">English</option>
       <option value="fr">French</option>
     </select>
   </div>

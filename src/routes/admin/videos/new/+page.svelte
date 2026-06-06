@@ -35,10 +35,10 @@
     <label class="label" for="language">Language</label>
     <select class="select" id="language" name="language">
       <option value="">Not defined</option>
+      <option value="en" selected>English</option>
       <option value="am">Amharic</option>
       <option value="om">Oromo</option>
       <option value="ti">Tigrinya</option>
-      <option value="en">English</option>
       <option value="fr">French</option>
     </select>
   </div>

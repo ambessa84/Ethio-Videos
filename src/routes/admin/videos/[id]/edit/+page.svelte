@@ -5,30 +5,19 @@
   let aiMetadata = $derived(data.aiMetadata);
   let aiMetadataLanguage = $derived(data.aiMetadataLanguage);
   let aiSlug = $derived(aiMetadata?.slug ?? video.slug);
-  let aiShortSummary = $derived(
-    aiMetadata?.shortSummary ?? video.aiShortSummary,
-  );
-  let aiLongSummary = $derived(aiMetadata?.longSummary ?? video.aiLongSummary);
-  let aiSeoTitle = $derived(aiMetadata?.seoTitle ?? video.aiSeoTitle);
-  let aiSeoDescription = $derived(
-    aiMetadata?.seoDescription ?? video.aiSeoDescription,
-  );
-  let aiDetectedLanguage = $derived(
-    aiMetadata?.detectedLanguage ?? video.aiLanguage,
-  );
-  let aiCategorySuggestion = $derived(
-    aiMetadata?.categorySuggestion ?? video.aiCategorySuggestion,
-  );
-  let aiConfidence = $derived(aiMetadata?.confidence ?? video.aiConfidence);
-  let aiNeedsHumanReview = $derived(
-    aiMetadata?.needsHumanReview ?? video.aiNeedsHumanReview,
-  );
-  let aiStatus = $derived(aiMetadata?.status ?? video.aiStatus);
-  let aiError = $derived(aiMetadata?.error ?? video.aiError);
-  let aiKeyPoints = $derived(
-    parseJsonArray(aiMetadata?.keyPoints ?? video.aiKeyPoints),
-  );
-  let aiTags = $derived(parseJsonArray(aiMetadata?.tags ?? video.aiTags));
+  let aiShortSummary = $derived(aiMetadata?.shortSummary ?? "");
+  let aiLongSummary = $derived(aiMetadata?.longSummary ?? "");
+  let aiSeoTitle = $derived(aiMetadata?.seoTitle ?? "");
+  let aiSeoDescription = $derived(aiMetadata?.seoDescription ?? "");
+  let aiDetectedLanguage = $derived(aiMetadata?.detectedLanguage ?? "");
+  let aiCategorySuggestion = $derived(aiMetadata?.categorySuggestion ?? "");
+  let aiConfidence = $derived(aiMetadata?.confidence ?? null);
+  let aiNeedsHumanReview = $derived(aiMetadata?.needsHumanReview ?? true);
+  let aiStatus = $derived(aiMetadata?.status ?? "NOT_GENERATED");
+  let localizedStatus = $derived(aiMetadata?.localizedStatus ?? "DRAFT");
+  let aiError = $derived(aiMetadata?.error ?? null);
+  let aiKeyPoints = $derived(parseJsonArray(aiMetadata?.keyPoints));
+  let aiTags = $derived(parseJsonArray(aiMetadata?.tags));
   let aiKeyPointsText = $derived(aiKeyPoints.join("\n"));
   let aiTagsText = $derived(aiTags.join(", "));
   let publicTags = $derived(
@@ -39,9 +28,7 @@
   let aiGeneratedAt = $derived(
     aiMetadata?.generatedAt
       ? new Date(aiMetadata.generatedAt).toLocaleString()
-      : video.aiGeneratedAt
-        ? new Date(video.aiGeneratedAt).toLocaleString()
-        : "-",
+      : "-",
   );
 
   function parseJsonArray(value: string | null | undefined): string[] {
@@ -179,7 +166,7 @@
   <h2>AI Summary</h2>
 
   <div class="pills">
-    {#each ["fr", "en", "am"] as language}
+    {#each ["en", "fr", "am"] as language}
       <a
         class:active={aiMetadataLanguage === language}
         class="pill"
@@ -196,6 +183,10 @@
     <p>
       <strong>Status:</strong>
       {aiStatus}
+    </p>
+    <p>
+      <strong>Public status:</strong>
+      {localizedStatus}
     </p>
     <p>
       <strong>Generated:</strong>
@@ -217,6 +208,18 @@
 
   <form method="POST" action="?/saveAiSummary" class="form">
     <input type="hidden" name="aiMetadataLanguage" value={aiMetadataLanguage} />
+
+    <div class="form-row">
+      <label class="label" for="localizedStatus">Public language status</label>
+      <select class="select" id="localizedStatus" name="localizedStatus">
+        <option value="DRAFT" selected={localizedStatus === "DRAFT"}
+          >Draft</option
+        >
+        <option value="PUBLISHED" selected={localizedStatus === "PUBLISHED"}
+          >Published</option
+        >
+      </select>
+    </div>
 
     <div class="form-row">
       <label class="label" for="aiSlug">Localized slug</label>
@@ -245,11 +248,8 @@
 
     <div class="form-row">
       <label class="label" for="aiKeyPoints">Key points</label>
-      <textarea
-        class="textarea"
-        id="aiKeyPoints"
-        name="aiKeyPoints"
-        rows="5">{aiKeyPointsText}</textarea
+      <textarea class="textarea" id="aiKeyPoints" name="aiKeyPoints" rows="5"
+        >{aiKeyPointsText}</textarea
       >
     </div>
 
@@ -302,9 +302,8 @@
       >
         <option value="">Not defined</option>
         {#each ["News", "Music", "Drama", "Comedy", "Religion", "Diaspora", "Business", "Culture", "Sport", "Other"] as category}
-          <option
-            value={category}
-            selected={aiCategorySuggestion === category}>{category}</option
+          <option value={category} selected={aiCategorySuggestion === category}
+            >{category}</option
           >
         {/each}
       </select>
@@ -340,8 +339,8 @@
     <div class="form-row">
       <label class="label" for="outputLanguage">Output language</label>
       <select class="select" id="outputLanguage" name="outputLanguage">
-        <option value="fr" selected={aiMetadataLanguage === "fr"}>fr</option>
         <option value="en" selected={aiMetadataLanguage === "en"}>en</option>
+        <option value="fr" selected={aiMetadataLanguage === "fr"}>fr</option>
         <option value="am" selected={aiMetadataLanguage === "am"}>am</option>
       </select>
     </div>

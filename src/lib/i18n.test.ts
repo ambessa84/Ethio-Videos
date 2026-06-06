@@ -16,6 +16,7 @@ describe("normalizeSiteLanguage", () => {
   });
 
   it("falls back to the default language", () => {
+    expect(defaultLanguage).toBe("en");
     expect(normalizeSiteLanguage(undefined)).toBe(defaultLanguage);
     expect(normalizeSiteLanguage("de")).toBe(defaultLanguage);
   });
