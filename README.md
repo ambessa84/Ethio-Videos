@@ -84,6 +84,26 @@ curl -H "Authorization: Bearer change_this_secret" http://localhost:5173/api/cro
 L'endpoint cron peut être appelé par Vercel Cron, GitHub Actions ou un cron serveur.
 Configure `CRON_SECRET` dans l'environnement de production.
 
+## Storybook
+
+Le projet utilise Storybook pour construire et tester les composants UI en
+isolation.
+
+Pour demarrer Storybook en local :
+
+```bash
+pnpm storybook
+```
+
+Pour verifier le build statique Storybook :
+
+```bash
+pnpm build-storybook
+```
+
+Les stories vivent a cote des composants, par exemple
+`src/lib/components/VideoCard.stories.ts`.
+
 ## Changelog
 
 Le projet utilise Changesets pour preparer les notes de version et generer
