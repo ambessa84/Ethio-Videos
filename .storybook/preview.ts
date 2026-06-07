@@ -1,3 +1,4 @@
+import "../src/lib/design-tokens.css";
 import "../src/app.css";
 
 import type { Preview } from "@storybook/sveltekit";
