@@ -69,6 +69,10 @@ export const GET = async () => {
       lastmod: new Date(),
     })),
     ...supportedLanguages.map((language) => ({
+      loc: `${siteUrl}${getLocalizedStaticPath(language, "news")}`,
+      lastmod: new Date(),
+    })),
+    ...supportedLanguages.map((language) => ({
       loc: `${siteUrl}${getLocalizedStaticPath(language, "submitVideo")}`,
       lastmod: new Date(),
     })),

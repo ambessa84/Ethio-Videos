@@ -5,10 +5,6 @@ const prisma = new PrismaClient();
 
 const categories = [
   {
-    name: "News",
-    description: "Latest Ethiopian news videos and analysis.",
-  },
-  {
     name: "Music",
     description: "Ethiopian music videos, artists and performances.",
   },
@@ -58,6 +54,36 @@ async function main() {
       },
     });
   }
+
+  await prisma.category.deleteMany({
+    where: {
+      slug: "news",
+      videos: { none: {} },
+      channels: { none: {} },
+    },
+  });
+
+  await prisma.newsSource.upsert({
+    where: {
+      feedUrl: "https://addisstandard.com/feed/",
+    },
+    update: {
+      name: "Addis Standard",
+      slug: "addis-standard",
+      siteUrl: "https://addisstandard.com/",
+      language: "en",
+      defaultTopic: "actualité",
+      isActive: true,
+    },
+    create: {
+      name: "Addis Standard",
+      slug: "addis-standard",
+      feedUrl: "https://addisstandard.com/feed/",
+      siteUrl: "https://addisstandard.com/",
+      language: "en",
+      defaultTopic: "actualité",
+    },
+  });
 }
 
 main()
