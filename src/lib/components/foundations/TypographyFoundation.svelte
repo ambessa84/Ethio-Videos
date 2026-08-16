@@ -5,14 +5,14 @@
     {
       label: "Display",
       className: "display",
-      text: "Decouvrez les meilleures videos ethiopiennes",
+      text: "Découvrez les meilleures vidéos éthiopiennes",
     },
-    { label: "Heading", className: "heading", text: "A la une" },
+    { label: "Heading", className: "heading", text: "À la une" },
     { label: "Section", className: "section", text: "Tendances" },
     {
       label: "Body",
       className: "body",
-      text: "Musique, actualites, culture, humour et diaspora.",
+      text: "Musique, actualités, culture, humour et diaspora.",
     },
     { label: "Meta", className: "meta", text: "51K vues / 10 mars 2026" },
   ];
@@ -20,7 +20,7 @@
 
 <FoundationShell
   title="Typography"
-  description="La direction typographique utilise Poppins pour l'interface editoriale EthioVideos."
+  description="La direction typographique utilise Poppins pour l'interface éditoriale EthioVideos."
 >
   <div class="panel">
     {#each specimens as specimen}

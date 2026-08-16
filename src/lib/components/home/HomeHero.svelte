@@ -2,19 +2,27 @@
   import HomeIcon from "./HomeIcon.svelte";
 
   let {
-    eyebrow = "Musique, actualites, culture, humour et diaspora.",
-    title = "Decouvrez les meilleures videos ethiopiennes",
-    highlightedWord = "ethiopiennes",
+    eyebrow = "Musique, actualités, culture, humour et diaspora.",
+    title = "Découvrez les meilleures vidéos éthiopiennes",
+    highlightedWord = "éthiopiennes",
     imageUrl = "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1200&q=80",
+    primaryHref = "/fr/dernieres-videos",
+    secondaryHref = "/fr/categories/music",
+    primaryLabel = "Regarder maintenant",
+    secondaryLabel = "Explorer les catégories",
   } = $props<{
     eyebrow?: string;
     title?: string;
     highlightedWord?: string;
     imageUrl?: string;
+    primaryHref?: string;
+    secondaryHref?: string;
+    primaryLabel?: string;
+    secondaryLabel?: string;
   }>();
 
   const titleBeforeHighlight = $derived(
-    title.replace(highlightedWord, "").trim(),
+    highlightedWord ? title.replace(highlightedWord, "").trim() : title,
   );
 </script>
 
@@ -22,18 +30,22 @@
   <div class="content">
     <h1>
       {titleBeforeHighlight}
-      <span>{highlightedWord}</span>
+      {#if highlightedWord}
+        <span>{highlightedWord}</span>
+      {/if}
     </h1>
-    <p>{eyebrow} Tout l'Ethiopie en video, selectionne pour vous.</p>
-    <div class="cta-row">
-      <a href="/fr/dernieres-videos" class="primary">
-        <HomeIcon name="play" size={16} />
-        Regarder maintenant
-      </a>
-      <a href="/fr/categories/music" class="secondary">
-        Explorer les categories
-        <HomeIcon name="chevron" size={16} />
-      </a>
+    <div class="bottom-row">
+      <div class="cta-row">
+        <a href={primaryHref} class="primary">
+          <HomeIcon name="play" size={44} />
+          {primaryLabel}
+        </a>
+        <a href={secondaryHref} class="secondary">
+          {secondaryLabel}
+          <HomeIcon name="chevron" size={16} />
+        </a>
+      </div>
+      <p>{eyebrow} Toute l'Éthiopie en vidéo, sélectionnée pour vous.</p>
     </div>
   </div>
   <div class="visual" aria-hidden="true">
@@ -43,43 +55,40 @@
 
 <style>
   .hero {
-    background:
-      linear-gradient(
-        90deg,
-        rgba(250, 246, 235, 0.98) 0%,
-        rgba(250, 246, 235, 0.86) 44%,
-        rgba(3, 104, 84, 0.12) 100%
-      ),
-      var(--ev-cream);
+    background: var(--ev-cream);
     border-radius: 1.35rem;
     display: grid;
-    grid-template-columns: minmax(0, 1.02fr) minmax(20rem, 0.98fr);
-    min-height: 21rem;
+    grid-template-rows: clamp(12rem, 24vw, 19rem) auto;
     overflow: hidden;
     position: relative;
   }
 
   .content {
-    align-self: center;
+    display: grid;
     font-family: var(--ev-font);
-    padding: clamp(2rem, 5vw, 4.2rem);
+    gap: clamp(0.85rem, 2vw, 1.35rem);
+    min-width: 0;
+    padding: clamp(1rem, 2.4vw, 1.65rem) 0 clamp(1.25rem, 3vw, 2rem);
     position: relative;
     z-index: 2;
   }
 
   h1 {
     color: var(--ev-ink);
-    font-size: clamp(2.8rem, 6vw, 5.25rem);
+    font-size: clamp(2.1rem, 3.65vw, 3.65rem);
     font-weight: 800;
     letter-spacing: 0;
-    line-height: 0.95;
+    line-height: 0.98;
     margin: 0;
-    max-width: 12ch;
+    max-width: none;
+    overflow-wrap: break-word;
+    white-space: nowrap;
   }
 
   h1 span {
     color: var(--ev-gold);
     display: block;
+    white-space: nowrap;
   }
 
   p {
@@ -87,8 +96,15 @@
     font-size: 0.98rem;
     font-weight: 500;
     line-height: 1.55;
-    margin: 1.15rem 0 0;
-    max-width: 31rem;
+    margin: 0;
+    max-width: 28rem;
+  }
+
+  .bottom-row {
+    align-items: end;
+    display: grid;
+    gap: clamp(1rem, 3vw, 2rem);
+    grid-template-columns: minmax(18rem, 0.48fr) minmax(18rem, 0.52fr);
   }
 
   .cta-row {
@@ -96,7 +112,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-top: 1.7rem;
+    margin-top: 0;
   }
 
   .primary,
@@ -123,44 +139,49 @@
   }
 
   .visual {
-    min-height: 100%;
+    min-height: 0;
+    order: -1;
     position: relative;
-  }
-
-  .visual::before {
-    background: linear-gradient(
-      90deg,
-      rgba(250, 246, 235, 0.85),
-      rgba(250, 246, 235, 0)
-    );
-    content: "";
-    inset: 0;
-    position: absolute;
-    z-index: 1;
   }
 
   .visual img {
     height: 100%;
     object-fit: cover;
+    object-position: center 72%;
     width: 100%;
+  }
+
+  @media (max-width: 1120px) {
+    .bottom-row {
+      grid-template-columns: 1fr;
+    }
+
+    h1 {
+      font-size: clamp(2.25rem, 7vw, 4rem);
+      white-space: normal;
+    }
+
+    h1 span {
+      white-space: normal;
+    }
   }
 
   @media (max-width: 760px) {
     .hero {
-      grid-template-columns: 1fr;
+      grid-template-rows: clamp(10rem, 44vw, 14rem) auto;
     }
 
-    .visual {
-      min-height: 14rem;
-      order: -1;
+    .content {
+      max-width: none;
+      padding: 1rem 0 1.35rem;
     }
 
-    .visual::before {
-      background: linear-gradient(
-        0deg,
-        var(--ev-cream),
-        rgba(250, 246, 235, 0)
-      );
+    .bottom-row {
+      gap: 0.85rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 10vw, 3.25rem);
     }
   }
 </style>

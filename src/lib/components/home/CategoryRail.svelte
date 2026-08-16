@@ -11,7 +11,6 @@
       | "globe"
       | "drama"
       | "music"
-      | "news"
       | "religion"
       | "sport";
   };
@@ -19,19 +18,18 @@
   let {
     categories = [
       { label: "Business", href: "/fr/categories/business", icon: "briefcase" },
-      { label: "Comedy", href: "/fr/categories/comedy", icon: "smile" },
+      { label: "Comédie", href: "/fr/categories/comedy", icon: "smile" },
       { label: "Culture", href: "/fr/categories/culture", icon: "book" },
       { label: "Diaspora", href: "/fr/categories/diaspora", icon: "globe" },
       { label: "Drama", href: "/fr/categories/drama", icon: "drama" },
-      { label: "Music", href: "/fr/categories/music", icon: "music" },
-      { label: "News", href: "/fr/categories/news", icon: "news" },
+      { label: "Musique", href: "/fr/categories/music", icon: "music" },
       { label: "Religion", href: "/fr/categories/religion", icon: "religion" },
       { label: "Sport", href: "/fr/categories/sport", icon: "sport" },
     ],
   }: { categories?: Category[] } = $props();
 </script>
 
-<nav class="category-rail" aria-label="Categories video">
+<nav class="category-rail" aria-label="Catégories vidéo">
   {#each categories as category}
     <a href={category.href} class="category">
       <HomeIcon name={category.icon} size={31} />
@@ -47,7 +45,7 @@
     border-radius: 1.15rem;
     box-shadow: var(--ev-shadow);
     display: grid;
-    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     margin-top: 1rem;
     overflow: hidden;
   }

@@ -39,7 +39,7 @@ export const FrenchMetadata: Story = {
       slug: "ethiopian-tigrigna-music-demo",
       localizedSlug: "reprise-tigrigna-ethiopienne-demo",
       title: "New Ethiopian Tigrigna Music 2026",
-      localizedTitle: "Reprise tigrigna ethiopienne 2026",
+      localizedTitle: "Reprise tigrigna éthiopienne 2026",
       thumbnailUrl: "/placeholder-video.svg",
       viewCount: 98210,
       channel: {
@@ -48,7 +48,7 @@ export const FrenchMetadata: Story = {
       },
       category: {
         name: "Musique",
-        slug: "musique",
+        slug: "music",
       },
     },
   },

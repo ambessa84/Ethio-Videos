@@ -1,4 +1,6 @@
 <script lang="ts">
+  import HomeIcon from "./HomeIcon.svelte";
+
   type Variant = "compact" | "feature";
 
   let {
@@ -29,6 +31,9 @@
     <img src={imageUrl} alt={title} />
     <span class="badge">{category}</span>
     <span class="duration">{duration}</span>
+    <span class="play-overlay">
+      <HomeIcon name="play" size={30} />
+    </span>
   </a>
   <div class="body">
     <h3><a {href}>{title}</a></h3>
@@ -82,6 +87,27 @@
     background: rgba(21, 30, 44, 0.88);
     bottom: 0.45rem;
     right: 0.45rem;
+  }
+
+  .play-overlay {
+    align-items: center;
+    aspect-ratio: 1;
+    background: var(--ev-mint);
+    border: 1px solid rgba(3, 104, 84, 0.28);
+    border-radius: 999px;
+    box-shadow: 0 8px 22px rgba(3, 104, 84, 0.18);
+    color: var(--ev-green);
+    display: inline-flex;
+    justify-content: center;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 3rem;
+  }
+
+  .feature .play-overlay {
+    width: 4rem;
   }
 
   h3 {

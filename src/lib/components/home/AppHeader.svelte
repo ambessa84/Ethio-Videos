@@ -7,24 +7,27 @@
   };
 
   let {
-    activeLanguage = "FR",
+    brandHref = "/fr",
+    searchAction = "/fr/recherche",
+    searchLabel = "Rechercher",
+    searchPlaceholder = "Rechercher des vidéos...",
     navItems = [
       { label: "Tendances", href: "/fr/tendances" },
-      { label: "Dernieres videos", href: "/fr/dernieres-videos" },
+      { label: "Dernières vidéos", href: "/fr/dernieres-videos" },
       { label: "Musique", href: "/fr/categories/musique" },
-      { label: "Actualites", href: "/fr/categories/actualites" },
       { label: "Proposer", href: "/fr/proposer-video" },
     ],
   }: {
-    activeLanguage?: "FR" | "EN" | "AM";
+    brandHref?: string;
+    searchAction?: string;
+    searchLabel?: string;
+    searchPlaceholder?: string;
     navItems?: NavItem[];
   } = $props();
-
-  const languages = ["FR", "EN", "AM"] as const;
 </script>
 
 <header class="app-header">
-  <a href="/" class="brand" aria-label="EthioVideos home">
+  <a href={brandHref} class="brand" aria-label="EthioVideos home">
     <span>Ethio</span><strong>Videos</strong>
   </a>
 
@@ -35,21 +38,15 @@
   </nav>
 
   <div class="actions">
-    <div class="language-switcher" aria-label="Choix de langue">
-      {#each languages as language}
-        <button class:active={language === activeLanguage} type="button"
-          >{language}</button
-        >
-      {/each}
-    </div>
-
-    <form class="search" action="/fr/recherche">
+    <form class="search" action={searchAction} method="GET">
       <HomeIcon name="search" size={18} />
       <input
-        aria-label="Rechercher des videos"
-        placeholder="Rechercher des videos..."
+        aria-label="Rechercher des vidéos"
+        name="q"
+        type="search"
+        placeholder={searchPlaceholder}
       />
-      <button type="submit">Rechercher</button>
+      <button type="submit">{searchLabel}</button>
     </form>
   </div>
 </header>
@@ -99,33 +96,6 @@
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
-  }
-
-  .language-switcher {
-    background: var(--ev-white);
-    border: 1px solid var(--ev-border);
-    border-radius: 999px;
-    box-shadow: 0 8px 24px rgba(21, 30, 44, 0.06);
-    display: flex;
-    padding: 0.25rem;
-  }
-
-  .language-switcher button {
-    aspect-ratio: 1;
-    background: transparent;
-    border: 0;
-    border-radius: 999px;
-    color: var(--ev-ink);
-    font-family: var(--ev-font);
-    font-size: 0.78rem;
-    font-weight: 700;
-    min-width: 2.7rem;
-    padding: 0;
-  }
-
-  .language-switcher button.active {
-    background: var(--ev-green);
-    color: var(--ev-white);
   }
 
   .search {

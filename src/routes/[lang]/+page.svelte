@@ -1,9 +1,105 @@
 <script lang="ts">
-  import VideoCard from "$lib/components/VideoCard.svelte";
-  import { getLocalizedCategoryPath, localizedLabels } from "$lib/i18n";
+  import CategoryRail from "$lib/components/home/CategoryRail.svelte";
+  import FeaturedVideo from "$lib/components/home/FeaturedVideo.svelte";
+  import HomeHero from "$lib/components/home/HomeHero.svelte";
+  import VideoSection from "$lib/components/home/VideoSection.svelte";
+  import {
+    getLocalizedCategoryPath,
+    getLocalizedCategoryName,
+    getLocalizedStaticPath,
+    getLocalizedVideoPath,
+    localizedLabels,
+  } from "$lib/i18n";
+  import { formatNumber } from "$lib/utils";
 
   let { data } = $props();
   let labels = $derived(localizedLabels[data.lang]);
+
+  type CategoryIcon =
+    | "briefcase"
+    | "smile"
+    | "book"
+    | "globe"
+    | "drama"
+    | "music"
+    | "religion"
+    | "sport";
+
+  const categoryIconBySlug: Record<string, CategoryIcon> = {
+    business: "briefcase",
+    comedy: "smile",
+    culture: "book",
+    diaspora: "globe",
+    drama: "drama",
+    music: "music",
+    religion: "religion",
+    sport: "sport",
+  };
+
+  function getCategoryIcon(slug: string): CategoryIcon {
+    return categoryIconBySlug[slug] ?? "globe";
+  }
+
+  function formatDuration(duration?: string | null) {
+    if (!duration) return "--:--";
+
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return duration;
+
+    const hours = Number(match[1] ?? 0);
+    const minutes = Number(match[2] ?? 0);
+    const seconds = Number(match[3] ?? 0);
+    const parts = hours
+      ? [hours, minutes.toString().padStart(2, "0")]
+      : [minutes || 0];
+
+    return [...parts, seconds.toString().padStart(2, "0")].join(":");
+  }
+
+  function formatPublishedDate(value?: string | Date | null) {
+    if (!value) return "";
+
+    return new Intl.DateTimeFormat(data.lang, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(value));
+  }
+
+  function toVideoTile(video: (typeof data.latestVideos)[number]) {
+    return {
+      title: video.localizedTitle || video.title,
+      channel: video.channel?.title ?? "EthioVideos",
+      views: formatNumber(video.viewCount) ?? "0",
+      date: formatPublishedDate(video.publishedAt),
+      category: video.category
+        ? getLocalizedCategoryName(
+            data.lang,
+            video.category.slug,
+            video.category.name,
+          )
+        : labels.featured,
+      duration: formatDuration(video.duration),
+      imageUrl: video.thumbnailUrl ?? "/placeholder-video.svg",
+      href: getLocalizedVideoPath(data.lang, video.localizedSlug ?? video.slug),
+    };
+  }
+
+  let categoryItems = $derived(
+    data.categories.map((category) => ({
+      label: getLocalizedCategoryName(data.lang, category.slug, category.name),
+      href: getLocalizedCategoryPath(data.lang, category.slug),
+      icon: getCategoryIcon(category.slug),
+    })),
+  );
+  let featuredVideo = $derived(
+    data.featuredVideos[0]
+      ? toVideoTile(data.featuredVideos[0])
+      : data.latestVideos[0]
+        ? toVideoTile(data.latestVideos[0])
+        : null,
+  );
+  let latestVideos = $derived(data.latestVideos.slice(0, 10).map(toVideoTile));
 </script>
 
 <svelte:head>
@@ -11,43 +107,70 @@
   <meta name="description" content={labels.heroCopy} />
 </svelte:head>
 
-<section class="hero">
-  <h1>{labels.heroTitle}</h1>
-  <p>{labels.heroCopy}</p>
+<div class="home-page">
+  <HomeHero
+    title={labels.heroTitle}
+    eyebrow={labels.heroCopy}
+    highlightedWord={data.lang === "en"
+      ? "curated."
+      : data.lang === "fr"
+        ? "sélectionnées."
+        : ""}
+    primaryHref={getLocalizedStaticPath(data.lang, "latest")}
+    secondaryHref={getLocalizedCategoryPath(data.lang, "music")}
+    primaryLabel={labels.latest}
+    secondaryLabel={labels.music}
+  />
 
-  <div class="pills">
-    {#each data.categories as category}
-      <a class="pill" href={getLocalizedCategoryPath(data.lang, category.slug)}>
-        {category.name}
-      </a>
-    {/each}
-  </div>
-</section>
+  <CategoryRail categories={categoryItems} />
 
-{#if data.featuredVideos.length}
-  <section class="section">
-    <h2 class="section-title">{labels.featured}</h2>
-    <div class="grid video-grid">
-      {#each data.featuredVideos as video}
-        <VideoCard {video} lang={data.lang} />
-      {/each}
-    </div>
-  </section>
-{/if}
+  {#if featuredVideo}
+    <FeaturedVideo
+      title={labels.featured}
+      viewAllLabel={labels.trending}
+      viewAllHref={getLocalizedStaticPath(data.lang, "trending")}
+      video={featuredVideo}
+    />
+  {/if}
 
-<section class="section">
-  <h2 class="section-title">{labels.latest}</h2>
+  <VideoSection
+    title={labels.latest}
+    viewAllLabel={labels.trending}
+    viewAllHref={getLocalizedStaticPath(data.lang, "trending")}
+    videos={latestVideos}
+  />
 
-  {#if data.latestVideos.length}
-    <div class="grid video-grid">
-      {#each data.latestVideos as video}
-        <VideoCard {video} lang={data.lang} />
-      {/each}
-    </div>
-  {:else}
-    <div class="panel">
+  {#if !data.latestVideos.length}
+    <div class="empty-state">
       <p>{labels.noVideos}</p>
-      <p><a href="/admin/videos/new">{labels.addVideo}</a></p>
+      <a href="/admin/videos/new">{labels.addVideo}</a>
     </div>
   {/if}
-</section>
+</div>
+
+<style>
+  .home-page {
+    padding-bottom: 1rem;
+  }
+
+  .empty-state {
+    background: var(--ev-white);
+    border: 1px solid var(--ev-border);
+    border-radius: 0.85rem;
+    color: var(--ev-muted);
+    display: grid;
+    font-family: var(--ev-font);
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+  }
+
+  .empty-state p {
+    margin: 0;
+  }
+
+  .empty-state a {
+    color: var(--ev-green);
+    font-weight: 700;
+  }
+</style>

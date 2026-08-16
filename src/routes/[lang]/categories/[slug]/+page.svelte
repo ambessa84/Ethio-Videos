@@ -1,14 +1,16 @@
 <script lang="ts">
   import VideoCard from "$lib/components/VideoCard.svelte";
+  import { localizedLabels } from "$lib/i18n";
 
   let { data } = $props();
+  let labels = $derived(localizedLabels[data.lang]);
 </script>
 
 <svelte:head>
-  <title>{data.category.name} Videos | EthioVideos</title>
+  <title>{data.category.name} | EthioVideos</title>
   <meta
     name="description"
-    content={data.category.description || `${data.category.name} videos`}
+    content={data.category.description || `${data.category.name} - EthioVideos`}
   />
 </svelte:head>
 
@@ -23,3 +25,7 @@
     <VideoCard {video} lang={data.lang} />
   {/each}
 </div>
+
+{#if !data.videos.length}
+  <p class="muted">{labels.noVideos}</p>
+{/if}

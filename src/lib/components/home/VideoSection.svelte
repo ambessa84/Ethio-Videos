@@ -4,9 +4,11 @@
 
   let {
     title = "Tendances",
+    viewAllLabel = "Voir tout",
+    viewAllHref = "/fr/tendances",
     videos = [
       {
-        title: "Yared Negu - New Ethiopian Music Video 2026",
+        title: "Yared Negu - Nouveau clip éthiopien 2026",
         channel: "Ethio Sound",
         views: "36K",
         date: "8 mars 2026",
@@ -17,18 +19,18 @@
         href: "/fr/videos/yared-negu-new-ethiopian-music-video-2026",
       },
       {
-        title: "Andualem & Mekdes - Best Comedy Skit 2026",
+        title: "Andualem & Mekdes - Meilleur sketch comique 2026",
         channel: "Abel Entertainment",
         views: "28K",
         date: "9 mars 2026",
-        category: "Comedy",
+        category: "Comédie",
         duration: "06:48",
         imageUrl:
           "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=700&q=80",
         href: "/fr/videos/andualem-mekdes-best-comedy-skit-2026",
       },
       {
-        title: "Timket : Celebrations de la foi et de la tradition",
+        title: "Timket : célébrations de la foi et de la tradition",
         channel: "Ethio Culture",
         views: "19K",
         date: "7 mars 2026",
@@ -39,18 +41,18 @@
         href: "/fr/videos/timket-celebrations-foi-tradition",
       },
       {
-        title: "Actualites d'Ethiopie - Resume du 10 mars 2026",
-        channel: "Ethio News",
+        title: "Investir à Addis-Abeba - idées business 2026",
+        channel: "Ethio Business",
         views: "42K",
         date: "10 mars 2026",
-        category: "News",
+        category: "Business",
         duration: "03:57",
         imageUrl:
           "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=700&q=80",
-        href: "/fr/videos/actualites-ethiopie-10-mars-2026",
+        href: "/fr/videos/investir-addis-abeba-idees-business-2026",
       },
       {
-        title: "Sew Le Sew - Episode 15 (Saison 2)",
+        title: "Sew Le Sew - Épisode 15 (Saison 2)",
         channel: "Kana Drama",
         views: "61K",
         date: "6 mars 2026",
@@ -61,14 +63,28 @@
         href: "/fr/videos/sew-le-sew-episode-15-saison-2",
       },
     ],
-  } = $props();
+  } = $props<{
+    title?: string;
+    viewAllLabel?: string;
+    viewAllHref?: string;
+    videos?: Array<{
+      title: string;
+      channel: string;
+      views: string;
+      date: string;
+      category: string;
+      duration: string;
+      imageUrl: string;
+      href?: string;
+    }>;
+  }>();
 </script>
 
 <section class="video-section">
   <div class="section-heading">
     <h2>{title}</h2>
-    <a href="/fr/tendances">
-      Voir tout
+    <a href={viewAllHref}>
+      {viewAllLabel}
       <HomeIcon name="chevron" size={15} />
     </a>
   </div>

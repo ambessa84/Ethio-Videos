@@ -1,5 +1,9 @@
 import { error } from "@sveltejs/kit";
-import { normalizeSiteLanguage } from "$lib/i18n";
+import {
+  getLocalizedCategoryDescription,
+  getLocalizedCategoryName,
+  normalizeSiteLanguage,
+} from "$lib/i18n";
 import {
   hasPublishedMetadata,
   includeAiMetadata,
@@ -36,7 +40,42 @@ export const load = async ({ params }) => {
 
   return {
     lang,
-    category,
-    videos: videos.map((video) => localizeVideo(video, lang)),
+    category: {
+      ...category,
+      name: getLocalizedCategoryName(lang, category.slug, category.name),
+      description: getLocalizedCategoryDescription(
+        lang,
+        category.slug,
+        category.description,
+      ),
+    },
+    videos: videos.map((video) => {
+      const localizedVideo = localizeVideo(video, lang);
+
+      return {
+        slug: localizedVideo.slug,
+        localizedSlug: localizedVideo.localizedSlug,
+        title: localizedVideo.title,
+        localizedTitle: localizedVideo.localizedTitle,
+        thumbnailUrl: localizedVideo.thumbnailUrl,
+        viewCount: localizedVideo.viewCount,
+        channel: localizedVideo.channel
+          ? {
+              title: localizedVideo.channel.title,
+              slug: localizedVideo.channel.slug,
+            }
+          : null,
+        category: localizedVideo.category
+          ? {
+              name: getLocalizedCategoryName(
+                lang,
+                localizedVideo.category.slug,
+                localizedVideo.category.name,
+              ),
+              slug: localizedVideo.category.slug,
+            }
+          : null,
+      };
+    }),
   };
 };

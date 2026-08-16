@@ -9,7 +9,6 @@
     "globe",
     "drama",
     "music",
-    "news",
     "religion",
     "sport",
     "play",
