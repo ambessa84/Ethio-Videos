@@ -41,6 +41,12 @@ ADMIN_PASSWORD="change_me"
 AUTH_SECRET="generate_a_random_secret_of_at_least_32_characters"
 CRON_SECRET="change_this_secret"
 PUBLIC_SITE_URL="http://localhost:5173"
+PUBLIC_AD_PROVIDER="disabled"
+PUBLIC_GOOGLE_ADSENSE_CLIENT_ID=""
+PUBLIC_GOOGLE_ADSENSE_AUTO_ADS="true"
+PUBLIC_GOOGLE_ADSENSE_SLOT_HOME=""
+PUBLIC_GOOGLE_ADSENSE_SLOT_VIDEO=""
+PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS=""
 ```
 
 Puis lance Prisma :
@@ -103,6 +109,42 @@ pnpm build-storybook
 
 Les stories vivent a cote des composants, par exemple
 `src/lib/components/VideoCard.stories.ts`.
+
+## Ads
+
+Le projet expose une couche publicitaire generique pour ne pas verrouiller le
+site sur un seul provider. Par defaut, les publicites sont desactivees :
+
+```env
+PUBLIC_AD_PROVIDER="disabled"
+```
+
+Pour activer Google AdSense en annonces automatiques, configure les variables
+publiques :
+
+```env
+PUBLIC_AD_PROVIDER="adsense"
+PUBLIC_GOOGLE_ADSENSE_CLIENT_ID="ca-pub-7433891310707777"
+PUBLIC_GOOGLE_ADSENSE_AUTO_ADS="true"
+```
+
+Le script demande par Google est charge automatiquement dans le `<head>` global
+du site quand `PUBLIC_AD_PROVIDER="adsense"` et
+`PUBLIC_GOOGLE_ADSENSE_CLIENT_ID` sont renseignes. L'affichage des annonces peut
+prendre jusqu'a une heure cote Google.
+
+Si tu crees aussi des blocs d'annonces manuels dans AdSense, tu peux renseigner
+les slots dedies :
+
+```env
+PUBLIC_GOOGLE_ADSENSE_SLOT_HOME="1234567890"
+PUBLIC_GOOGLE_ADSENSE_SLOT_VIDEO="1234567891"
+PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS="1234567892"
+```
+
+Les slots sont places sur la homepage, la page video et la page Actualites. En
+mode annonces automatiques, ces slots peuvent rester vides : Google choisira les
+emplacements depuis le script global.
 
 ## Changelog
 

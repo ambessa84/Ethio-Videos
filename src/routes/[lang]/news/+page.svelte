@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { env } from "$env/dynamic/public";
+  import AdSlot from "$lib/components/ads/AdSlot.svelte";
   import { localizedLabels } from "$lib/i18n";
 
   let { data } = $props();
@@ -50,7 +52,7 @@
 
   {#if data.articles.length}
     <div class="news-list">
-      {#each data.articles as article}
+      {#each data.articles as article, index}
         <article class="news-card">
           <div class="news-source-row">
             <span class="source-mark" aria-hidden="true">
@@ -74,6 +76,16 @@
             {/if}
           </div>
         </article>
+
+        {#if data.articles.length > 4 && index === 2}
+          <div class="news-ad">
+            <AdSlot
+              slot={env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS}
+              label={labels.advertisement}
+              minHeight="100px"
+            />
+          </div>
+        {/if}
       {/each}
     </div>
   {:else}
@@ -130,6 +142,11 @@
 
   .news-card + .news-card {
     border-top: 1px solid var(--ev-border);
+  }
+
+  .news-ad {
+    border-top: 1px solid var(--ev-border);
+    padding: 1rem;
   }
 
   .news-source-row {
