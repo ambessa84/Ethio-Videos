@@ -28,13 +28,16 @@
     (providerOverride || env.PUBLIC_AD_PROVIDER || "disabled") as AdProvider,
   );
   const clientId = $derived(env.PUBLIC_GOOGLE_ADSENSE_CLIENT_ID);
+  const autoAdsEnabled = $derived(
+    env.PUBLIC_GOOGLE_ADSENSE_AUTO_ADS === "true",
+  );
   const isAdsenseConfigured = $derived(
     provider === "adsense" && Boolean(clientId && slot),
   );
   const showPlaceholder = $derived(
     dev ||
       provider === "disabled" ||
-      (provider === "adsense" && !isAdsenseConfigured),
+      (provider === "adsense" && !isAdsenseConfigured && !autoAdsEnabled),
   );
 
   $effect(() => {
