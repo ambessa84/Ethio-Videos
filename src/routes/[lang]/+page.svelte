@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { env } from "$env/dynamic/public";
+  import AdSlot from "$lib/components/ads/AdSlot.svelte";
   import CategoryRail from "$lib/components/home/CategoryRail.svelte";
   import FeaturedVideo from "$lib/components/home/FeaturedVideo.svelte";
   import HomeHero from "$lib/components/home/HomeHero.svelte";
@@ -123,6 +125,12 @@
   />
 
   <CategoryRail categories={categoryItems} />
+
+  <AdSlot
+    slot={env.PUBLIC_GOOGLE_ADSENSE_SLOT_HOME}
+    label={labels.advertisement}
+    minHeight="100px"
+  />
 
   {#if featuredVideo}
     <FeaturedVideo

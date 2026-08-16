@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { env } from "$env/dynamic/public";
   import { page } from "$app/stores";
+  import AdSlot from "$lib/components/ads/AdSlot.svelte";
   import VideoCard from "$lib/components/VideoCard.svelte";
   import {
     getLocalizedCategoryPath,
@@ -39,7 +41,11 @@
   <meta property="og:image" content={video.thumbnailUrl || ""} />
   <link rel="canonical" href={shareUrl} />
   {#each Object.entries(data.languageAlternates) as [language, path]}
-    <link rel="alternate" hreflang={language} href={`${$page.url.origin}${path}`} />
+    <link
+      rel="alternate"
+      hreflang={language}
+      href={`${$page.url.origin}${path}`}
+    />
   {/each}
 
   {@html structuredDataScript}
@@ -54,6 +60,14 @@
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen
       ></iframe>
+    </div>
+
+    <div class="section">
+      <AdSlot
+        slot={env.PUBLIC_GOOGLE_ADSENSE_SLOT_VIDEO}
+        label={labels.advertisement}
+        minHeight="120px"
+      />
     </div>
 
     <h1>{video.localizedTitle || video.title}</h1>
@@ -83,7 +97,10 @@
     {#if video.tags.length}
       <div class="pills section">
         {#each video.tags as videoTag}
-          <a class="pill" href={getLocalizedTagPath(data.lang, videoTag.tag.slug)}>
+          <a
+            class="pill"
+            href={getLocalizedTagPath(data.lang, videoTag.tag.slug)}
+          >
             {videoTag.tag.name}
           </a>
         {/each}

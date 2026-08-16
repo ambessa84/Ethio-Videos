@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { env } from "$env/dynamic/public";
   import { page } from "$app/stores";
   import AppHeader from "$lib/components/home/AppHeader.svelte";
   import {
@@ -57,7 +58,20 @@
     am: languagePath("am"),
   });
   const footerLanguages = ["fr", "en", "am"] as const;
+  const shouldLoadAdsense =
+    env.PUBLIC_AD_PROVIDER === "adsense" &&
+    Boolean(env.PUBLIC_GOOGLE_ADSENSE_CLIENT_ID);
 </script>
+
+<svelte:head>
+  {#if shouldLoadAdsense}
+    <script
+      async
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.PUBLIC_GOOGLE_ADSENSE_CLIENT_ID}`}
+      crossorigin="anonymous"
+    ></script>
+  {/if}
+</svelte:head>
 
 <div>
   <header class="site-header">

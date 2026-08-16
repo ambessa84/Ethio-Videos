@@ -57,6 +57,7 @@ export const localizedLabels = {
     viewOnYoutube: "Voir sur YouTube",
     videosEmbedded: "Les vidéos sont intégrées depuis YouTube.",
     views: "vues",
+    advertisement: "Publicité",
   },
   en: {
     trending: "Trending",
@@ -105,6 +106,7 @@ export const localizedLabels = {
     viewOnYoutube: "View on YouTube",
     videosEmbedded: "Videos are embedded from YouTube.",
     views: "views",
+    advertisement: "Advertisement",
   },
   am: {
     trending: "ተወዳጅ",
@@ -151,6 +153,7 @@ export const localizedLabels = {
     viewOnYoutube: "በYouTube ይመልከቱ",
     videosEmbedded: "ቪዲዮዎች ከYouTube ተካተዋል።",
     views: "እይታዎች",
+    advertisement: "ማስታወቂያ",
   },
 } as const;
 
