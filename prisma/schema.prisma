@@ -171,6 +171,51 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 }
 
+model NewsSource {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  name          String
+  feedUrl       String        @unique
+  siteUrl       String?
+  language      String?
+  defaultTopic  String?
+  isActive      Boolean       @default(true)
+  lastFetchedAt DateTime?
+  lastError     String?
+  articles      NewsArticle[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([language])
+}
+
+model NewsArticle {
+  id          String    @id @default(cuid())
+  sourceId    String
+  sourceUrl   String    @unique
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  imageUrl    String?
+  author      String?
+  topic       String?
+  language    String?
+  publishedAt DateTime?
+  importedAt  DateTime  @default(now())
+
+  source NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([publishedAt])
+  @@index([sourceId])
+  @@index([language])
+  @@index([topic])
+}
+
 enum VideoStatus {
   DRAFT
   PUBLISHED
