@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import AppHeader from "$lib/components/home/AppHeader.svelte";
   import {
     defaultLanguage,
     getLocalizedCategoryPath,
@@ -7,8 +8,8 @@
     getLocalizedStaticPath,
     localizedLabels,
     normalizeSiteLanguage,
-    supportedLanguages,
   } from "$lib/i18n";
+  import "$lib/design-tokens.css";
   import "../app.css";
 
   let { children } = $props();
@@ -26,54 +27,48 @@
       getLocalizedPath(normalizeSiteLanguage(language), $page.url.pathname)
     );
   }
+
+  let navItems = $derived([
+    {
+      label: labels.trending,
+      href: getLocalizedStaticPath(currentLanguage, "trending"),
+    },
+    {
+      label: labels.latest,
+      href: getLocalizedStaticPath(currentLanguage, "latest"),
+    },
+    {
+      label: labels.music,
+      href: getLocalizedCategoryPath(currentLanguage, "music"),
+    },
+    {
+      label: labels.news,
+      href: getLocalizedStaticPath(currentLanguage, "news"),
+    },
+    {
+      label: labels.submit,
+      href: getLocalizedStaticPath(currentLanguage, "submitVideo"),
+    },
+  ]);
+
+  let languageHrefs = $derived({
+    fr: languagePath("fr"),
+    en: languagePath("en"),
+    am: languagePath("am"),
+  });
+  const footerLanguages = ["fr", "en", "am"] as const;
 </script>
 
 <div>
   <header class="site-header">
-    <div class="container header-inner">
-      <a class="logo" href={`/${currentLanguage}`}>EthioVideos</a>
-
-      <nav class="nav">
-        <a href={getLocalizedStaticPath(currentLanguage, "trending")}>
-          {labels.trending}
-        </a>
-        <a href={getLocalizedStaticPath(currentLanguage, "latest")}>
-          {labels.latest}
-        </a>
-        <a href={getLocalizedCategoryPath(currentLanguage, "music")}>
-          {labels.music}
-        </a>
-        <a href={getLocalizedCategoryPath(currentLanguage, "news")}>
-          {labels.news}
-        </a>
-        <a href={getLocalizedStaticPath(currentLanguage, "submitVideo")}>
-          {labels.submit}
-        </a>
-      </nav>
-
-      <nav class="pills">
-        {#each supportedLanguages as language}
-          <a
-            class:active={language === currentLanguage}
-            class="pill"
-            href={languagePath(language)}>{language.toUpperCase()}</a
-          >
-        {/each}
-      </nav>
-
-      <form
-        class="search-form header-search"
-        action={getLocalizedStaticPath(currentLanguage, "search")}
-        method="GET"
-      >
-        <input
-          class="search-input"
-          name="q"
-          type="search"
-          placeholder={labels.searchPlaceholder}
-        />
-        <button class="button secondary" type="submit">{labels.search}</button>
-      </form>
+    <div class="container">
+      <AppHeader
+        brandHref={`/${currentLanguage}`}
+        {navItems}
+        searchAction={getLocalizedStaticPath(currentLanguage, "search")}
+        searchLabel={labels.search}
+        searchPlaceholder={labels.searchPlaceholder}
+      />
     </div>
   </header>
 
@@ -82,19 +77,33 @@
   </main>
 
   <footer class="footer">
-    <div class="container">
-      <p>© 2026 EthioVideos. {labels.videosEmbedded}</p>
-      <p>
-        <a href={getLocalizedStaticPath(currentLanguage, "newsletter")}>
-          {labels.newsletter}
-        </a>
-        ·
-        <a href={getLocalizedStaticPath(currentLanguage, "submitVideo")}>
-          {labels.submitVideo}
-        </a>
-        ·
-        <a href="/admin/login">{labels.admin}</a>
-      </p>
+    <div class="container footer-inner">
+      <div>
+        <p>© 2026 EthioVideos. {labels.videosEmbedded}</p>
+        <p class="footer-links">
+          <a href={getLocalizedStaticPath(currentLanguage, "newsletter")}>
+            {labels.newsletter}
+          </a>
+          <span>/</span>
+          <a href={getLocalizedStaticPath(currentLanguage, "submitVideo")}>
+            {labels.submitVideo}
+          </a>
+          <span>/</span>
+          <a href="/admin/login">{labels.admin}</a>
+        </p>
+      </div>
+
+      <nav class="footer-language-switcher" aria-label="Choix de langue">
+        {#each footerLanguages as language}
+          <a
+            class:active={language === currentLanguage}
+            href={languageHrefs[language]}
+            aria-current={language === currentLanguage ? "page" : undefined}
+          >
+            {language.toUpperCase()}
+          </a>
+        {/each}
+      </nav>
     </div>
   </footer>
 </div>

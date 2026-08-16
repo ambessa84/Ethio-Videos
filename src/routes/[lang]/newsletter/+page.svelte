@@ -10,14 +10,14 @@
 </svelte:head>
 
 <h1>{labels.newsletter}</h1>
-<p class="muted">Receive the best Ethiopian videos by email.</p>
+<p class="muted">{labels.newsletterCopy}</p>
 
 {#if form?.message}
-  <div class="alert">{form.message}</div>
+  <div class="alert">{labels.newsletterInvalidEmail}</div>
 {/if}
 
 {#if form?.success}
-  <div class="success">You are subscribed.</div>
+  <div class="success">{labels.newsletterSubscribed}</div>
 {/if}
 
 <form method="POST" class="form section">
@@ -27,14 +27,14 @@
   </div>
 
   <div class="form-row">
-    <label class="label" for="language">Preferred language</label>
+    <label class="label" for="language">{labels.preferredLanguage}</label>
     <select class="select" id="language" name="language">
-      <option value="">No preference</option>
-      <option value="en">English</option>
-      <option value="fr">French</option>
-      <option value="am">Amharic</option>
+      <option value="">{labels.noLanguagePreference}</option>
+      <option value="en">{labels.english}</option>
+      <option value="fr">{labels.french}</option>
+      <option value="am">{labels.amharic}</option>
     </select>
   </div>
 
-  <button class="button" type="submit">Subscribe</button>
+  <button class="button" type="submit">{labels.subscribe}</button>
 </form>

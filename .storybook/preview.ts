@@ -1,0 +1,18 @@
+import "../src/lib/design-tokens.css";
+import "../src/app.css";
+
+import type { Preview } from "@storybook/sveltekit";
+
+const preview: Preview = {
+  parameters: {
+    controls: {
+      matchers: {
+        color: /(background|color)$/i,
+        date: /Date$/i,
+      },
+    },
+    layout: "centered",
+  },
+};
+
+export default preview;

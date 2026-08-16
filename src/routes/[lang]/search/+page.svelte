@@ -12,7 +12,11 @@
 
 <h1>{labels.search}</h1>
 
-<form action={getLocalizedStaticPath(data.lang, "search")} method="GET" class="form">
+<form
+  action={getLocalizedStaticPath(data.lang, "search")}
+  method="GET"
+  class="form"
+>
   <input
     class="input"
     name="q"
@@ -24,7 +28,7 @@
 
 {#if data.q}
   <section class="section">
-    <h2>Results for "{data.q}"</h2>
+    <h2>{labels.searchResultsFor} "{data.q}"</h2>
 
     {#if data.videos.length}
       <div class="grid video-grid">
@@ -33,7 +37,7 @@
         {/each}
       </div>
     {:else}
-      <p class="muted">No result found.</p>
+      <p class="muted">{labels.noSearchResults}</p>
     {/if}
   </section>
 {/if}
