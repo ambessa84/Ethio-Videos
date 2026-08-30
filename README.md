@@ -166,6 +166,45 @@ pnpm release:changelog
 Le projet est une application privee : Changesets est utilise ici pour le
 changelog et la version, pas pour publier un package npm.
 
+## Production deploy
+
+La production est deployee sur le VPS depuis un tag Git, avec le workflow :
+
+```text
+MR -> merge master -> tag vX.Y.Z -> deploy VPS
+```
+
+Le workflow GitHub Actions `.github/workflows/deploy-vps.yml` se declenche sur
+les tags `v*` et execute le deploy sur le serveur via SSH.
+
+Secrets GitHub requis :
+
+```text
+VPS_HOST=148.230.112.204
+VPS_USER=root
+VPS_PORT=22
+VPS_SSH_KEY=<private ssh key allowed on the VPS>
+VPS_APP_DIR=/var/www/ethio-videos
+```
+
+`VPS_PORT`, `VPS_USER` et `VPS_APP_DIR` peuvent etre omis si le serveur utilise
+les valeurs par defaut `22`, `root` et `/var/www/ethio-videos`.
+
+Pour deployer une release :
+
+```bash
+git switch master
+git pull --ff-only origin master
+pnpm release:changelog
+git add package.json CHANGELOG.md .changeset
+git commit -m "chore: release vX.Y.Z"
+git tag vX.Y.Z
+git push origin master vX.Y.Z
+```
+
+Le VPS doit avoir un working tree propre avant le deploy. Le workflow s'arrete
+si des changements locaux non committes sont presents sur le serveur.
+
 ## AI summaries
 
 La Phase 1 genere des resumes IA uniquement depuis les metadonnees YouTube deja

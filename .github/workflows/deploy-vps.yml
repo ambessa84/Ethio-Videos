@@ -1,0 +1,74 @@
+name: Deploy VPS
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy tagged release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$VPS_HOST"
+          test -n "$VPS_SSH_KEY"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -p "${VPS_PORT:-22}" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy release tag on VPS
+        env:
+          DEPLOY_TAG: ${{ github.ref_name }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+
+          APP_DIR="${VPS_APP_DIR:-/var/www/ethio-videos}"
+          SSH_PORT="${VPS_PORT:-22}"
+          SSH_USER="${VPS_USER:-root}"
+
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$VPS_HOST" "DEPLOY_TAG='$DEPLOY_TAG' APP_DIR='$APP_DIR' bash -s" <<'REMOTE'
+            set -euo pipefail
+
+            cd "$APP_DIR"
+
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "The VPS working tree is not clean. Commit, stash, or remove local changes before deploying."
+              git status --short
+              exit 1
+            fi
+
+            git fetch --force origin "refs/tags/${DEPLOY_TAG}:refs/tags/${DEPLOY_TAG}"
+            git checkout --detach "refs/tags/${DEPLOY_TAG}"
+
+            corepack enable
+            corepack prepare pnpm@11.21.0 --activate
+
+            pnpm install --frozen-lockfile
+            pnpm prisma generate
+            pnpm prisma migrate deploy
+            pnpm build
+
+            systemctl restart ethio-videos
+            systemctl status ethio-videos --no-pager
+          REMOTE
