@@ -57,6 +57,34 @@ jobs:
 
           cat ~/.ssh/known_hosts.tmp >> ~/.ssh/known_hosts
 
+      - name: Verify SSH authentication
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+
+          SSH_PORT="${VPS_PORT:-22}"
+          SSH_USER="${VPS_USER:-root}"
+
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub; then
+            echo "VPS_SSH_KEY is not a valid private key or requires a passphrase."
+            exit 1
+          fi
+
+          echo "Public fingerprint loaded by GitHub Actions:"
+          ssh-keygen -lf ~/.ssh/deploy_key.pub
+
+          echo "Testing SSH authentication before deploy."
+          ssh \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -i ~/.ssh/deploy_key \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$VPS_HOST" \
+            "echo SSH authentication succeeded"
+
       - name: Deploy release tag on VPS
         env:
           DEPLOY_TAG: ${{ github.ref_name }}
@@ -71,7 +99,13 @@ jobs:
           SSH_PORT="${VPS_PORT:-22}"
           SSH_USER="${VPS_USER:-root}"
 
-          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$VPS_HOST" "DEPLOY_TAG='$DEPLOY_TAG' APP_DIR='$APP_DIR' bash -s" <<'REMOTE'
+          ssh \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -i ~/.ssh/deploy_key \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$VPS_HOST" \
+            "DEPLOY_TAG='$DEPLOY_TAG' APP_DIR='$APP_DIR' bash -s" <<'REMOTE'
             set -euo pipefail
 
             cd "$APP_DIR"
