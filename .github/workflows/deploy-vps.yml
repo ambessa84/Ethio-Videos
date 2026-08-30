@@ -22,8 +22,23 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
-          test -n "$VPS_HOST"
-          test -n "$VPS_SSH_KEY"
+
+          if [ -z "$VPS_HOST" ]; then
+            echo "Missing required GitHub secret: VPS_HOST"
+            exit 1
+          fi
+
+          if [ -z "$VPS_SSH_KEY" ]; then
+            echo "Missing required GitHub secret: VPS_SSH_KEY"
+            exit 1
+          fi
+
+          SSH_PORT="${VPS_PORT:-22}"
+
+          if ! printf '%s' "$SSH_PORT" | grep -Eq '^[0-9]+$'; then
+            echo "VPS_PORT must be a number, for example 22."
+            exit 1
+          fi
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
@@ -31,7 +46,16 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          ssh-keyscan -p "${VPS_PORT:-22}" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          echo "Scanning SSH host key on port ${SSH_PORT}."
+          ssh-keyscan -T 30 -p "$SSH_PORT" -H "$VPS_HOST" > ~/.ssh/known_hosts.tmp 2> ~/.ssh/ssh-keyscan.err
+
+          if [ ! -s ~/.ssh/known_hosts.tmp ]; then
+            echo "Unable to scan the VPS SSH host key. Check VPS_HOST, VPS_PORT, firewall, and that sshd is running."
+            cat ~/.ssh/ssh-keyscan.err
+            exit 1
+          fi
+
+          cat ~/.ssh/known_hosts.tmp >> ~/.ssh/known_hosts
 
       - name: Deploy release tag on VPS
         env:
