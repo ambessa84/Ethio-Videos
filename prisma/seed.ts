@@ -38,6 +38,49 @@ const categories = [
   },
 ];
 
+const newsSources = [
+  {
+    name: "Addis Standard",
+    slug: "addis-standard",
+    feedUrl: "https://addisstandard.com/feed/",
+    siteUrl: "https://addisstandard.com/",
+    language: "en",
+    defaultTopic: "actualite",
+  },
+  {
+    name: "Addis Fortune",
+    slug: "addis-fortune",
+    feedUrl: "https://addisfortune.news/feed/",
+    siteUrl: "https://addisfortune.news/",
+    language: "en",
+    defaultTopic: "business",
+  },
+  {
+    name: "Walta",
+    slug: "walta",
+    feedUrl: "https://www.waltainfo.com/feed/",
+    siteUrl: "https://www.waltainfo.com/",
+    language: "en",
+    defaultTopic: "actualite",
+  },
+  {
+    name: "Fana BC English",
+    slug: "fana-bc-english",
+    feedUrl: "https://www.fanabc.com/english/feed/",
+    siteUrl: "https://www.fanabc.com/english/",
+    language: "en",
+    defaultTopic: "actualite",
+  },
+  {
+    name: "Ethiopian Press Agency English",
+    slug: "ethiopian-press-agency-english",
+    feedUrl: "https://www.press.et/english/feed/",
+    siteUrl: "https://www.press.et/english/",
+    language: "en",
+    defaultTopic: "actualite",
+  },
+];
+
 async function main() {
   for (const category of categories) {
     await prisma.category.upsert({
@@ -63,27 +106,22 @@ async function main() {
     },
   });
 
-  await prisma.newsSource.upsert({
-    where: {
-      feedUrl: "https://addisstandard.com/feed/",
-    },
-    update: {
-      name: "Addis Standard",
-      slug: "addis-standard",
-      siteUrl: "https://addisstandard.com/",
-      language: "en",
-      defaultTopic: "actualité",
-      isActive: true,
-    },
-    create: {
-      name: "Addis Standard",
-      slug: "addis-standard",
-      feedUrl: "https://addisstandard.com/feed/",
-      siteUrl: "https://addisstandard.com/",
-      language: "en",
-      defaultTopic: "actualité",
-    },
-  });
+  for (const source of newsSources) {
+    await prisma.newsSource.upsert({
+      where: {
+        feedUrl: source.feedUrl,
+      },
+      update: {
+        name: source.name,
+        slug: source.slug,
+        siteUrl: source.siteUrl,
+        language: source.language,
+        defaultTopic: source.defaultTopic,
+        isActive: true,
+      },
+      create: source,
+    });
+  }
 }
 
 main()
