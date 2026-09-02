@@ -46,10 +46,14 @@
       label: labels.news,
       href: getLocalizedStaticPath(currentLanguage, "news"),
     },
-    {
-      label: labels.submit,
-      href: getLocalizedStaticPath(currentLanguage, "submitVideo"),
-    },
+    ...($page.data.isAdmin
+      ? [
+          {
+            label: labels.submit,
+            href: getLocalizedStaticPath(currentLanguage, "submitVideo"),
+          },
+        ]
+      : []),
   ]);
 
   let languageHrefs = $derived({
@@ -98,10 +102,12 @@
           <a href={getLocalizedStaticPath(currentLanguage, "newsletter")}>
             {labels.newsletter}
           </a>
-          <span>/</span>
-          <a href={getLocalizedStaticPath(currentLanguage, "submitVideo")}>
-            {labels.submitVideo}
-          </a>
+          {#if $page.data.isAdmin}
+            <span>/</span>
+            <a href={getLocalizedStaticPath(currentLanguage, "submitVideo")}>
+              {labels.submitVideo}
+            </a>
+          {/if}
           <span>/</span>
           <a href="/admin/login">{labels.admin}</a>
         </p>
