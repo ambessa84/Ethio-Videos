@@ -171,6 +171,26 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 }
 
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerified   DateTime?
+  firstName       String?
+  lastName        String?
+  name            String?
+  birthDate       DateTime?
+  address         String?
+  username        String?   @unique
+  image           String?
+  avatar          String?
+  role            UserRole  @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
 model NewsSource {
   id            String        @id @default(cuid())
   slug          String        @unique
@@ -243,4 +263,9 @@ enum SuggestionStatus {
 enum ChannelStatus {
   ACTIVE
   HIDDEN
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
