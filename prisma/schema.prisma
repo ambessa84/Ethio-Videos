@@ -173,7 +173,7 @@ model NewsletterSubscriber {
 
 model User {
   id              String    @id @default(cuid())
-  email           String    @unique
+  email           String?   @unique
   emailVerified   DateTime?
   firstName       String?
   lastName        String?
@@ -184,11 +184,14 @@ model User {
   image           String?
   avatar          String?
   role            UserRole  @default(USER)
+  socialProvider  String?
+  socialAccountId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([role])
+  @@unique([socialProvider, socialAccountId])
 }
 
 model EmailOtp {

@@ -1,8 +1,29 @@
 import { fail } from "@sveltejs/kit";
+import { env } from "$env/dynamic/private";
 import { prisma } from "$lib/server/prisma";
 import { signIn } from "../../auth";
 import { createEmailOtp } from "$lib/server/email-otp";
 import { fullName, userProfileSchema } from "$lib/server/user-profile";
+
+export const load = async () => ({
+  socialProviders: [
+    env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET
+      ? { id: "google", label: "Google" }
+      : null,
+    env.AUTH_FACEBOOK_ID && env.AUTH_FACEBOOK_SECRET
+      ? { id: "facebook", label: "Facebook" }
+      : null,
+    env.AUTH_TIKTOK_ID && env.AUTH_TIKTOK_SECRET
+      ? { id: "tiktok", label: "TikTok" }
+      : null,
+    env.AUTH_LINKEDIN_ID && env.AUTH_LINKEDIN_SECRET
+      ? { id: "linkedin", label: "LinkedIn" }
+      : null,
+    env.AUTH_MICROSOFT_ENTRA_ID_ID && env.AUTH_MICROSOFT_ENTRA_ID_SECRET
+      ? { id: "microsoft-entra-id", label: "Hotmail / Microsoft" }
+      : null,
+  ].filter((provider) => provider !== null),
+});
 
 export const actions = {
   default: async ({ request }) => {
@@ -65,4 +86,5 @@ export const actions = {
     };
   },
   verify: signIn,
+  social: signIn,
 };
