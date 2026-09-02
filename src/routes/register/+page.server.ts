@@ -1,5 +1,7 @@
 import { fail } from "@sveltejs/kit";
 import { prisma } from "$lib/server/prisma";
+import { signIn } from "../../auth";
+import { createEmailOtp } from "$lib/server/email-otp";
 import { fullName, userProfileSchema } from "$lib/server/user-profile";
 
 export const actions = {
@@ -16,11 +18,25 @@ export const actions = {
 
     const profile = result.data;
     const birthDate = profile.birthDate ? new Date(profile.birthDate) : null;
+    const normalizedEmail = profile.email.toLowerCase();
 
     try {
-      await prisma.user.create({
-        data: {
-          email: profile.email.toLowerCase(),
+      await prisma.user.upsert({
+        where: {
+          email: normalizedEmail,
+        },
+        update: {
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          name: fullName(profile),
+          birthDate,
+          address: profile.address || null,
+          username: profile.username,
+          image: profile.image || null,
+          avatar: profile.avatar,
+        },
+        create: {
+          email: normalizedEmail,
           firstName: profile.firstName,
           lastName: profile.lastName,
           name: fullName(profile),
@@ -33,14 +49,20 @@ export const actions = {
       });
     } catch {
       return fail(409, {
-        message: "An account already exists with this email or username.",
+        message: "This username is already used.",
         values: Object.fromEntries(formData),
       });
     }
 
+    const otp = await createEmailOtp(normalizedEmail);
+
     return {
       success: true,
-      message: "Your profile has been created.",
+      message: "Enter the code sent to your email to validate your account.",
+      email: normalizedEmail,
+      expiresAt: otp.expiresAt,
+      debugCode: otp.debugCode,
     };
   },
+  verify: signIn,
 };
