@@ -20,7 +20,9 @@
     "release:changelog": "changeset version",
     "prisma:studio": "prisma studio",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "news:import": "tsx scripts/import-news.ts",
+    "news:import:file": "tsx scripts/import-news-file.ts"
   },
   "dependencies": {
     "@auth/sveltekit": "^1.11.2",
