@@ -5,6 +5,15 @@
 
   let { data } = $props();
   let labels = $derived(localizedLabels[data.lang]);
+  const newsTopAdSlot =
+    env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS_TOP ||
+    env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS;
+  const newsInlineAdSlot =
+    env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS_INLINE ||
+    env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS;
+  const newsSidebarAdSlot =
+    env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS_SIDEBAR ||
+    env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS;
 
   function getSourceInitials(sourceName: string) {
     return sourceName
@@ -50,43 +59,66 @@
     <p class="muted">{labels.newsIntro}</p>
   </div>
 
+  <AdSlot
+    slot={newsTopAdSlot}
+    label={labels.advertisement}
+    minHeight="110px"
+  />
+
   {#if data.articles.length}
-    <div class="news-list">
-      {#each data.articles as article, index}
-        <article class="news-card">
-          <div class="news-source-row">
-            <span class="source-mark" aria-hidden="true">
-              {getSourceInitials(article.sourceName)}
-            </span>
-            <span class="source-name">{article.sourceName}</span>
-          </div>
+    <div class="news-content">
+      <div class="news-list">
+        {#each data.articles as article, index}
+          <article class="news-card">
+            <div class="news-source-row">
+              <span class="source-mark" aria-hidden="true">
+                {getSourceInitials(article.sourceName)}
+              </span>
+              <span class="source-name">{article.sourceName}</span>
+            </div>
 
-          <h2>
-            <a href={article.sourceUrl} target="_blank" rel="noreferrer">
-              {article.title}
-            </a>
-          </h2>
+            <h2>
+              <a href={article.sourceUrl} target="_blank" rel="noreferrer">
+                {article.title}
+              </a>
+            </h2>
 
-          <div class="news-meta">
-            <p>
-              {formatRelativeTime(article.publishedAt ?? article.importedAt)}
-            </p>
-            {#if article.topic}
-              <p>{article.topic}</p>
-            {/if}
-          </div>
-        </article>
+            <div class="news-meta">
+              <p>
+                {formatRelativeTime(article.publishedAt ?? article.importedAt)}
+              </p>
+              {#if article.topic}
+                <p>{article.topic}</p>
+              {/if}
+            </div>
+          </article>
 
-        {#if data.articles.length > 4 && index === 2}
-          <div class="news-ad">
-            <AdSlot
-              slot={env.PUBLIC_GOOGLE_ADSENSE_SLOT_NEWS}
-              label={labels.advertisement}
-              minHeight="100px"
-            />
-          </div>
-        {/if}
-      {/each}
+          {#if data.articles.length > 4 && (index === 2 || index === 8)}
+            <div class="news-ad">
+              <AdSlot
+                slot={newsInlineAdSlot}
+                label={labels.advertisement}
+                minHeight="100px"
+              />
+            </div>
+          {/if}
+        {/each}
+      </div>
+
+      <aside class="news-sidebar" aria-label={labels.advertisement}>
+        <AdSlot
+          slot={newsSidebarAdSlot}
+          label={labels.advertisement}
+          minHeight="280px"
+          format="rectangle"
+        />
+        <AdSlot
+          slot={newsSidebarAdSlot}
+          label={labels.advertisement}
+          minHeight="280px"
+          format="rectangle"
+        />
+      </aside>
     </div>
   {:else}
     <div class="empty-news">
@@ -132,6 +164,20 @@
     border: 1px solid var(--ev-border);
     border-radius: 8px;
     display: grid;
+  }
+
+  .news-content {
+    align-items: start;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+  }
+
+  .news-sidebar {
+    display: grid;
+    gap: 1rem;
+    position: sticky;
+    top: 1rem;
   }
 
   .news-card {
@@ -222,6 +268,14 @@
   }
 
   @media (max-width: 640px) {
+    .news-content {
+      grid-template-columns: 1fr;
+    }
+
+    .news-sidebar {
+      display: none;
+    }
+
     .news-card {
       gap: 0.85rem;
       padding: 1rem;
