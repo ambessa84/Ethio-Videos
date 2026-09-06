@@ -15,6 +15,14 @@ export type ImportNewsFeedResult = {
   error?: string;
 };
 
+export type NewsSourceImportTarget = {
+  id: string;
+  name: string;
+  feedUrl: string;
+  language: string | null;
+  defaultTopic: string | null;
+};
+
 const rssRequestHeaders = {
   accept:
     "text/html,application/xhtml+xml,application/xml;q=0.9,application/rss+xml;q=0.8,text/xml;q=0.8,*/*;q=0.7",
@@ -68,65 +76,74 @@ async function fetchNewsItems(feedUrl: string): Promise<ParsedNewsItem[]> {
   return parseRssFeed(await response.text());
 }
 
-async function importNewsSource(source: {
-  id: string;
-  name: string;
-  feedUrl: string;
-  language: string | null;
-  defaultTopic: string | null;
-}): Promise<ImportNewsFeedResult> {
+export async function importNewsItemsForSource(
+  source: NewsSourceImportTarget,
+  items: ParsedNewsItem[],
+): Promise<ImportNewsFeedResult> {
+  let imported = 0;
+  let skipped = 0;
+
+  for (const item of items) {
+    const existingArticle = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT id
+      FROM "NewsArticle"
+      WHERE "sourceUrl" = ${item.sourceUrl}
+      LIMIT 1
+    `;
+
+    if (existingArticle.length) {
+      skipped += 1;
+      continue;
+    }
+
+    await prisma.$executeRaw`
+      INSERT INTO "NewsArticle" (
+        id,
+        "sourceId",
+        "sourceUrl",
+        slug,
+        title,
+        excerpt,
+        "imageUrl",
+        author,
+        topic,
+        language,
+        "publishedAt",
+        "createdAt",
+        "updatedAt"
+      )
+      VALUES (
+        ${randomUUID()},
+        ${source.id},
+        ${item.sourceUrl},
+        ${item.slug},
+        ${item.title},
+        ${item.excerpt ?? null},
+        ${item.imageUrl ?? null},
+        ${item.author ?? null},
+        ${source.defaultTopic},
+        ${source.language},
+        ${item.publishedAt ?? null},
+        NOW(),
+        NOW()
+      )
+    `;
+    imported += 1;
+  }
+
+  return {
+    source: source.name,
+    imported,
+    skipped,
+  };
+}
+
+async function importNewsSource(
+  source: NewsSourceImportTarget,
+): Promise<ImportNewsFeedResult> {
   try {
     const items = await fetchNewsItems(source.feedUrl);
-    let imported = 0;
-    let skipped = 0;
-
-    for (const item of items) {
-      const existingArticle = await prisma.$queryRaw<Array<{ id: string }>>`
-        SELECT id
-        FROM "NewsArticle"
-        WHERE "sourceUrl" = ${item.sourceUrl}
-        LIMIT 1
-      `;
-
-      if (existingArticle.length) {
-        skipped += 1;
-        continue;
-      }
-
-      await prisma.$executeRaw`
-        INSERT INTO "NewsArticle" (
-          id,
-          "sourceId",
-          "sourceUrl",
-          slug,
-          title,
-          excerpt,
-          "imageUrl",
-          author,
-          topic,
-          language,
-          "publishedAt",
-          "createdAt",
-          "updatedAt"
-        )
-        VALUES (
-          ${randomUUID()},
-          ${source.id},
-          ${item.sourceUrl},
-          ${item.slug},
-          ${item.title},
-          ${item.excerpt ?? null},
-          ${item.imageUrl ?? null},
-          ${item.author ?? null},
-          ${source.defaultTopic},
-          ${source.language},
-          ${item.publishedAt ?? null},
-          NOW(),
-          NOW()
-        )
-      `;
-      imported += 1;
-    }
+    const result = await importNewsItemsForSource(source, items);
 
     await prisma.$executeRaw`
       UPDATE "NewsSource"
@@ -134,11 +151,7 @@ async function importNewsSource(source: {
       WHERE id = ${source.id}
     `;
 
-    return {
-      source: source.name,
-      imported,
-      skipped,
-    };
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
 
