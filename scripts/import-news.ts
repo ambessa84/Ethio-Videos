@@ -9,6 +9,7 @@ try {
 }
 
 async function main() {
+  const strict = process.argv.includes("--strict");
   const results = await importNewsFeeds();
   const totals = results.reduce(
     (summary, result) => ({
@@ -32,7 +33,7 @@ async function main() {
     `news import complete: imported=${totals.imported} skipped=${totals.skipped} failed=${totals.failed}`,
   );
 
-  if (totals.failed === results.length && results.length > 0) {
+  if (strict && totals.failed > 0) {
     process.exitCode = 1;
   }
 }

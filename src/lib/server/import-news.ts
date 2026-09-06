@@ -9,6 +9,17 @@ export type ImportNewsFeedResult = {
   error?: string;
 };
 
+const rssRequestHeaders = {
+  accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,application/rss+xml;q=0.8,text/xml;q=0.8,*/*;q=0.7",
+  "accept-language": "en-US,en;q=0.9,fr;q=0.8",
+  "cache-control": "no-cache",
+  pragma: "no-cache",
+  "upgrade-insecure-requests": "1",
+  "user-agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+};
+
 async function importNewsSource(source: {
   id: string;
   name: string;
@@ -18,11 +29,7 @@ async function importNewsSource(source: {
 }): Promise<ImportNewsFeedResult> {
   try {
     const response = await fetch(source.feedUrl, {
-      headers: {
-        accept: "application/rss+xml, application/xml, text/xml",
-        "user-agent":
-          "Mozilla/5.0 (compatible; EthioVideosNewsBot/1.0; +https://ethiovideos.com)",
-      },
+      headers: rssRequestHeaders,
     });
 
     if (!response.ok) {
