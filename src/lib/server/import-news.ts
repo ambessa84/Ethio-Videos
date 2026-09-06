@@ -1,6 +1,6 @@
-import { prisma } from "$lib/server/prisma";
-import { parseRssFeed } from "$lib/server/news-rss";
 import { randomUUID } from "node:crypto";
+import { parseRssFeed } from "./news-rss";
+import { prisma } from "./prisma";
 
 export type ImportNewsFeedResult = {
   source: string;

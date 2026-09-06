@@ -1,4 +1,4 @@
-import { createSlug } from "$lib/server/slug";
+import { createSlug } from "./slug";
 
 export type ParsedNewsItem = {
   title: string;
