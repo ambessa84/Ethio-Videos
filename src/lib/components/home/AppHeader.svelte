@@ -8,6 +8,9 @@
 
   let {
     brandHref = "/fr",
+    accountHref = "/login",
+    accountLabel = "Sign in",
+    accountVariant = "guest",
     searchAction = "/fr/recherche",
     searchLabel = "Rechercher",
     searchPlaceholder = "Rechercher des vidéos...",
@@ -19,6 +22,9 @@
     ],
   }: {
     brandHref?: string;
+    accountHref?: string;
+    accountLabel?: string;
+    accountVariant?: "guest" | "user";
     searchAction?: string;
     searchLabel?: string;
     searchPlaceholder?: string;
@@ -38,6 +44,16 @@
   </nav>
 
   <div class="actions">
+    <a
+      class:account-user={accountVariant === "user"}
+      class="account-link"
+      href={accountHref}
+      aria-label={accountLabel}
+    >
+      <HomeIcon name="user" size={18} />
+      <span>{accountLabel}</span>
+    </a>
+
     <form class="search" action={searchAction} method="GET">
       <HomeIcon name="search" size={18} />
       <input
@@ -96,6 +112,31 @@
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
+  }
+
+  .account-link {
+    align-items: center;
+    border: 1px solid var(--ev-border);
+    border-radius: 999px;
+    color: var(--ev-green);
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .account-link span {
+    font-family: var(--ev-font);
+    font-size: 0.86rem;
+    font-weight: 800;
+  }
+
+  .account-link.account-user {
+    background: color-mix(in srgb, var(--ev-green) 9%, var(--ev-white));
+    color: var(--ev-ink);
   }
 
   .search {

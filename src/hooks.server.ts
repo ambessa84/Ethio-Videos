@@ -8,6 +8,7 @@ const authorizationHandle: Handle = async ({ event, resolve }) => {
 
   const session = await event.locals.auth();
   const sessionUser = session?.user as { role?: string } | undefined;
+  event.locals.isAuthenticated = Boolean(sessionUser);
   event.locals.isAdmin = sessionUser?.role === "ADMIN";
 
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
