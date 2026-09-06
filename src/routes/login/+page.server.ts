@@ -1,4 +1,13 @@
 import { env } from "$env/dynamic/private";
+import { fail } from "@sveltejs/kit";
+import { z } from "zod";
+import { signIn } from "../../auth";
+import { createEmailOtp } from "$lib/server/email-otp";
+import { prisma } from "$lib/server/prisma";
+
+const emailSchema = z.object({
+  email: z.string().trim().email("A valid email is required.").max(160),
+});
 
 function socialProviders() {
   return [
@@ -23,3 +32,40 @@ function socialProviders() {
 export const load = async () => ({
   socialProviders: socialProviders(),
 });
+
+export const actions = {
+  default: async ({ request }) => {
+    const formData = await request.formData();
+    const result = emailSchema.safeParse(Object.fromEntries(formData));
+
+    if (!result.success) {
+      return fail(400, {
+        message: result.error.issues[0]?.message ?? "Invalid email.",
+        values: Object.fromEntries(formData),
+      });
+    }
+
+    const email = result.data.email.toLowerCase();
+
+    await prisma.user.upsert({
+      where: {
+        email,
+      },
+      update: {},
+      create: {
+        email,
+      },
+    });
+
+    const otp = await createEmailOtp(email);
+
+    return {
+      success: true,
+      message: "Saisissez le code envoye a votre email.",
+      email,
+      expiresAt: otp.expiresAt,
+      debugCode: otp.debugCode,
+    };
+  },
+  verify: signIn,
+};
