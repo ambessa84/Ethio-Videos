@@ -15,6 +15,20 @@ const authorizationHandle: Handle = async ({ event, resolve }) => {
     }
   }
 
+  const submitRouteSegments = new Set([
+    "proposer-video",
+    "submit-video",
+    "video-lak",
+  ]);
+  const routeSegments = pathname.split("/").filter(Boolean);
+
+  if (
+    routeSegments.some((segment) => submitRouteSegments.has(segment)) &&
+    !event.locals.isAdmin
+  ) {
+    throw redirect(303, "/admin/login");
+  }
+
   const language = pathname.split("/").filter(Boolean)[0];
 
   return resolve(event, {
