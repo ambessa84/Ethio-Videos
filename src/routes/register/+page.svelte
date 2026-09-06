@@ -3,6 +3,7 @@
 
   let { form } = $props();
   const values = $derived((form?.values ?? {}) as Record<string, string>);
+  const otpEmail = $derived((form?.email ?? values.email ?? "") as string);
 </script>
 
 <svelte:head>
@@ -17,6 +18,33 @@
 
   {#if form?.message}
     <div class={form.success ? "success" : "alert"}>{form.message}</div>
+  {/if}
+
+  {#if form?.success && otpEmail}
+    <form method="POST" action="?/verify" class="otp-form">
+      <input type="hidden" name="providerId" value="email-otp" />
+      <input type="hidden" name="redirectTo" value="/profile" />
+      <label class="form-row">
+        <span class="label">Email</span>
+        <input class="input" type="email" name="email" value={otpEmail} readonly />
+      </label>
+      <label class="form-row">
+        <span class="label">Validation code</span>
+        <input
+          class="input"
+          name="code"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          minlength="6"
+          maxlength="6"
+          required
+        />
+      </label>
+      {#if form.debugCode}
+        <p class="muted">Development code: {form.debugCode}</p>
+      {/if}
+      <button class="button" type="submit">Validate email</button>
+    </form>
   {/if}
 
   <form method="POST" class="profile-form">
@@ -136,6 +164,15 @@
   }
 
   .profile-form {
+    background: var(--ev-white);
+    border: 1px solid var(--ev-border);
+    border-radius: 8px;
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .otp-form {
     background: var(--ev-white);
     border: 1px solid var(--ev-border);
     border-radius: 8px;
