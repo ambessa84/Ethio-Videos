@@ -27,16 +27,23 @@ const rssRequestHeaders = {
 };
 
 async function fetchWordPressPosts(feedUrl: string): Promise<ParsedNewsItem[]> {
-  const response = await fetch(wordpressPostsEndpoint(feedUrl), {
+  const endpoint = wordpressPostsEndpoint(feedUrl);
+  const response = await fetch(endpoint, {
     headers: {
       ...rssRequestHeaders,
       accept: "application/json,text/plain,*/*",
     },
   });
 
+  if (response.status === 403) {
+    throw new Error(
+      `Cloudflare blocked both the RSS feed and WordPress posts endpoint for ${new URL(feedUrl).origin}. Use a publisher-approved feed, an allowlisted endpoint, or disable this source.`,
+    );
+  }
+
   if (!response.ok) {
     throw new Error(
-      `WordPress posts endpoint ${wordpressPostsEndpoint(feedUrl)} returned HTTP ${response.status}`,
+      `WordPress posts endpoint ${endpoint} returned HTTP ${response.status}`,
     );
   }
 
