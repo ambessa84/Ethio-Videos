@@ -64,7 +64,7 @@
     {#if data.socialProviders.length}
       <div class="social-list">
         {#each data.socialProviders as provider}
-          <form method="POST" action="/register?/social">
+          <form method="POST" action="?/social">
             <input type="hidden" name="providerId" value={provider.id} />
             <input type="hidden" name="redirectTo" value="/profile" />
             <button class="button secondary" type="submit">
