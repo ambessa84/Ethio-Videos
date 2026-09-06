@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto";
+import type { ParsedNewsItem } from "./news-rss";
 import { parseRssFeed } from "./news-rss";
+import {
+  parseWordPressPosts,
+  wordpressPostsEndpoint,
+  type WordPressPost,
+} from "./news-wordpress";
 import { prisma } from "./prisma";
 
 export type ImportNewsFeedResult = {
@@ -20,6 +26,41 @@ const rssRequestHeaders = {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
 };
 
+async function fetchWordPressPosts(feedUrl: string): Promise<ParsedNewsItem[]> {
+  const response = await fetch(wordpressPostsEndpoint(feedUrl), {
+    headers: {
+      ...rssRequestHeaders,
+      accept: "application/json,text/plain,*/*",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `WordPress posts endpoint ${wordpressPostsEndpoint(feedUrl)} returned HTTP ${response.status}`,
+    );
+  }
+
+  const posts = (await response.json()) as WordPressPost[];
+
+  return parseWordPressPosts(posts);
+}
+
+async function fetchNewsItems(feedUrl: string): Promise<ParsedNewsItem[]> {
+  const response = await fetch(feedUrl, {
+    headers: rssRequestHeaders,
+  });
+
+  if (response.status === 403) {
+    return fetchWordPressPosts(feedUrl);
+  }
+
+  if (!response.ok) {
+    throw new Error(`News feed ${feedUrl} returned HTTP ${response.status}`);
+  }
+
+  return parseRssFeed(await response.text());
+}
+
 async function importNewsSource(source: {
   id: string;
   name: string;
@@ -28,18 +69,7 @@ async function importNewsSource(source: {
   defaultTopic: string | null;
 }): Promise<ImportNewsFeedResult> {
   try {
-    const response = await fetch(source.feedUrl, {
-      headers: rssRequestHeaders,
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `News feed ${source.feedUrl} returned HTTP ${response.status}`,
-      );
-    }
-
-    const xml = await response.text();
-    const items = parseRssFeed(xml);
+    const items = await fetchNewsItems(source.feedUrl);
     let imported = 0;
     let skipped = 0;
 
