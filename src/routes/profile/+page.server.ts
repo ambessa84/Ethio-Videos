@@ -3,30 +3,53 @@ import { prisma } from "$lib/server/prisma";
 
 export const load = async ({ locals }) => {
   const session = await locals.auth();
-  const email = session?.user?.email;
+  const sessionUser = session?.user as
+    | { id?: string; email?: string | null }
+    | undefined;
+  const userId = sessionUser?.id;
+  const email = sessionUser?.email;
 
-  if (!email) {
+  if (!userId && !email) {
     throw redirect(303, "/register");
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email.toLowerCase(),
-    },
-    select: {
-      email: true,
-      emailVerified: true,
-      firstName: true,
-      lastName: true,
-      name: true,
-      birthDate: true,
-      address: true,
-      username: true,
-      image: true,
-      avatar: true,
-      role: true,
-    },
-  });
+  const user = userId
+    ? await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          email: true,
+          emailVerified: true,
+          firstName: true,
+          lastName: true,
+          name: true,
+          birthDate: true,
+          address: true,
+          username: true,
+          image: true,
+          avatar: true,
+          role: true,
+        },
+      })
+    : await prisma.user.findUnique({
+        where: {
+          email: email!.toLowerCase(),
+        },
+        select: {
+          email: true,
+          emailVerified: true,
+          firstName: true,
+          lastName: true,
+          name: true,
+          birthDate: true,
+          address: true,
+          username: true,
+          image: true,
+          avatar: true,
+          role: true,
+        },
+      });
 
   if (!user) {
     throw redirect(303, "/register");

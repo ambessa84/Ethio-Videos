@@ -1,7 +1,7 @@
 <script lang="ts">
   import { avatarOptions } from "$lib/user-profile";
 
-  let { form } = $props();
+  let { data, form } = $props();
   const values = $derived((form?.values ?? {}) as Record<string, string>);
   const otpEmail = $derived((form?.email ?? values.email ?? "") as string);
 </script>
@@ -18,6 +18,20 @@
 
   {#if form?.message}
     <div class={form.success ? "success" : "alert"}>{form.message}</div>
+  {/if}
+
+  {#if data.socialProviders.length}
+    <div class="social-panel">
+      {#each data.socialProviders as provider}
+        <form method="POST" action="?/social">
+          <input type="hidden" name="providerId" value={provider.id} />
+          <input type="hidden" name="redirectTo" value="/profile" />
+          <button class="button secondary" type="submit">
+            Continue with {provider.label}
+          </button>
+        </form>
+      {/each}
+    </div>
   {/if}
 
   {#if form?.success && otpEmail}
@@ -179,6 +193,17 @@
     display: grid;
     gap: 1rem;
     padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .social-panel {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  }
+
+  .social-panel form,
+  .social-panel button {
+    width: 100%;
   }
 
   .form-grid {

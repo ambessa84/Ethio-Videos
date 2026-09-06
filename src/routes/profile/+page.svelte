@@ -4,6 +4,7 @@
   const displayName = $derived(
     user.name || [user.firstName, user.lastName].filter(Boolean).join(" "),
   );
+  const accountLabel = $derived(user.email ?? "Social account");
 </script>
 
 <svelte:head>
@@ -16,12 +17,12 @@
       {#if user.image}
         <img src={user.image} alt="" />
       {:else}
-        <span>{(displayName || user.email).slice(0, 1).toUpperCase()}</span>
+        <span>{(displayName || accountLabel).slice(0, 1).toUpperCase()}</span>
       {/if}
     </div>
     <div>
       <h1>{displayName || user.username}</h1>
-      <p class="muted">@{user.username} / {user.email}</p>
+      <p class="muted">@{user.username} / {accountLabel}</p>
     </div>
   </div>
 
