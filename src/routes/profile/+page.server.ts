@@ -61,7 +61,7 @@ export const load = async ({ locals, url }) => {
       });
 
   if (!user) {
-    throw redirect(303, "/register");
+    throw redirect(303, "/login");
   }
 
   return {
