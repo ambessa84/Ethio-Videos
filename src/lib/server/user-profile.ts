@@ -32,6 +32,44 @@ export const userProfileSchema = z.object({
 
 export type UserProfileInput = z.infer<typeof userProfileSchema>;
 
+export const editableUserProfileSchema = z.object({
+  firstName: z.string().trim().max(80).optional().default(""),
+  lastName: z.string().trim().max(80).optional().default(""),
+  birthDate: z
+    .string()
+    .trim()
+    .optional()
+    .default("")
+    .transform((value) => value || null)
+    .refine((value) => !value || !Number.isNaN(Date.parse(value)), {
+      message: "Birth date is invalid.",
+    }),
+  address: z.string().trim().max(240).optional().default(""),
+  username: z
+    .string()
+    .trim()
+    .optional()
+    .default("")
+    .refine((value) => !value || value.length >= 3, {
+      message: "Username must contain at least 3 characters.",
+    })
+    .refine((value) => !value || /^[a-zA-Z0-9_-]+$/.test(value), {
+      message: "Username can contain letters, numbers, _ and -.",
+    }),
+  image: z
+    .string()
+    .trim()
+    .url("Profile photo must be a valid URL.")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
+  avatar: z.enum(avatarOptions).default("classic"),
+});
+
+export type EditableUserProfileInput = z.infer<
+  typeof editableUserProfileSchema
+>;
+
 export function fullName(profile: Pick<UserProfileInput, "firstName" | "lastName">) {
   return `${profile.firstName} ${profile.lastName}`.trim();
 }
