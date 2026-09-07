@@ -3,6 +3,7 @@ import { prisma } from "$lib/server/prisma";
 import {
   editableUserProfileSchema,
   fullName,
+  missingProfileFields,
 } from "$lib/server/user-profile";
 import { safeRedirectPath } from "$lib/server/redirect";
 
@@ -64,6 +65,7 @@ export const load = async ({ locals, url }) => {
   }
 
   return {
+    missingFields: missingProfileFields(user),
     redirectTo: safeRedirectPath(url.searchParams.get("redirectTo"), "/"),
     user,
   };
@@ -140,6 +142,7 @@ export const actions = {
 
       return {
         success: true,
+        missingFields: missingProfileFields(user),
         message: "Profil mis a jour.",
         redirectTo,
         user,

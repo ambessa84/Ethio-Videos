@@ -70,6 +70,28 @@ export type EditableUserProfileInput = z.infer<
   typeof editableUserProfileSchema
 >;
 
+const completionLabels = {
+  firstName: "First name",
+  lastName: "Last name",
+  birthDate: "Birth date",
+  username: "Username",
+  avatar: "Avatar",
+} as const;
+
+type CompletableProfile = Partial<Record<keyof typeof completionLabels, unknown>>;
+
+export function missingProfileFields(profile: CompletableProfile) {
+  return Object.entries(completionLabels)
+    .filter(([key]) => {
+      const value = profile[key as keyof typeof completionLabels];
+      return typeof value === "string" ? !value.trim() : !value;
+    })
+    .map(([key, label]) => ({
+      key,
+      label,
+    }));
+}
+
 export function fullName(profile: Pick<UserProfileInput, "firstName" | "lastName">) {
   return `${profile.firstName} ${profile.lastName}`.trim();
 }
