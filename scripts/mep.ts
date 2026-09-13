@@ -16,6 +16,7 @@ type Options = {
 type GithubPr = {
   branch: string;
   number: number;
+  state?: string;
   url: string;
 };
 
@@ -239,6 +240,21 @@ function mergeBranchesWithGithubPrs(branches: string[]) {
 
   for (const branch of branches) {
     ensureRemoteBranch(branch);
+    const existing = findPullRequest(branch, "all");
+
+    if (isRemoteBranchMerged(branch)) {
+      console.info(`Branch already merged into master: ${branch}`);
+      if (existing[0]) {
+        mergedPrs.push({
+          branch,
+          number: existing[0].number,
+          state: existing[0].state,
+          url: existing[0].url,
+        });
+      }
+      continue;
+    }
+
     const pr = ensurePullRequest(branch);
     runCommand(ghCommand, ["pr", "merge", String(pr.number), "--merge"]);
     runGit(["fetch", "origin"]);
@@ -296,23 +312,13 @@ function ensureRemoteBranch(branch: string) {
 }
 
 function ensurePullRequest(branch: string) {
-  const existing = ghJson<GithubPr[]>([
-    "pr",
-    "list",
-    "--head",
-    branch,
-    "--base",
-    "master",
-    "--state",
-    "open",
-    "--json",
-    "number,url",
-  ]);
+  const existing = findPullRequest(branch, "open");
 
   if (existing[0]) {
     return {
       branch,
       number: existing[0].number,
+      state: existing[0].state,
       url: existing[0].url,
     };
   }
@@ -333,18 +339,7 @@ function ensurePullRequest(branch: string) {
     body,
   ]);
 
-  const created = ghJson<GithubPr[]>([
-    "pr",
-    "list",
-    "--head",
-    branch,
-    "--base",
-    "master",
-    "--state",
-    "open",
-    "--json",
-    "number,url",
-  ]);
+  const created = findPullRequest(branch, "open");
 
   if (!created[0]) {
     fail(`Unable to find created pull request for ${branch}.`);
@@ -353,8 +348,34 @@ function ensurePullRequest(branch: string) {
   return {
     branch,
     number: created[0].number,
+    state: created[0].state,
     url: created[0].url,
   };
+}
+
+function findPullRequest(branch: string, state: "all" | "open") {
+  return ghJson<GithubPr[]>([
+    "pr",
+    "list",
+    "--head",
+    branch,
+    "--base",
+    "master",
+    "--state",
+    state,
+    "--json",
+    "number,url,state",
+  ]);
+}
+
+function isRemoteBranchMerged(branch: string) {
+  const result = spawnSync("git", gitArgs(["merge-base", "--is-ancestor", `origin/${branch}`, "origin/master"]), {
+    cwd: root,
+    encoding: "utf8",
+    stdio: "ignore",
+  });
+
+  return result.status === 0;
 }
 
 function ghJson<T>(args: string[]) {
