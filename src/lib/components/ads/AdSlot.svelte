@@ -10,7 +10,7 @@
     format = "auto",
     fullWidthResponsive = true,
     minHeight = "90px",
-    directTitle = "Sponsor EthioVideos",
+    directTitle = "Sponsor EthioHub",
     directHref = "/contact",
     providerOverride,
   }: {

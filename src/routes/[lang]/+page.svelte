@@ -105,7 +105,7 @@
 </script>
 
 <svelte:head>
-  <title>EthioVideos - {labels.heroTitle}</title>
+  <title>EthioHub - {labels.heroTitle}</title>
   <meta name="description" content={labels.heroCopy} />
 </svelte:head>
 

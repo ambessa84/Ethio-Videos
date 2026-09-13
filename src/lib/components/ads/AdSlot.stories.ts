@@ -20,7 +20,7 @@ export const Placeholder: Story = {};
 export const DirectSponsor: Story = {
   args: {
     providerOverride: "direct",
-    directTitle: "Sponsor EthioVideos",
+    directTitle: "Sponsor EthioHub",
     directHref: "/fr/proposer-video",
   },
 };
