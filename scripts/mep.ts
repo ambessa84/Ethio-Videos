@@ -7,9 +7,16 @@ type VersionMode = "major" | "minor" | "patch";
 type Options = {
   branches: string[];
   createGithubRelease: boolean;
+  githubPrs: boolean;
   mode: "prepare" | "publish";
   runChecks: boolean;
   version?: string;
+};
+
+type GithubPr = {
+  branch: string;
+  number: number;
+  url: string;
 };
 
 const root = process.cwd();
@@ -43,16 +50,20 @@ function prepareMep(options: Options) {
   const tag = `v${nextVersion}`;
 
   ensureTagDoesNotExist(tag);
+  validateBranches(options.branches);
 
   runGit(["fetch", "origin"]);
   runGit(["switch", "master"]);
   runGit(["pull", "--ff-only", "origin", "master"]);
 
   const baseCommit = gitOutput(["rev-parse", "HEAD"]);
+  const githubPrs = options.githubPrs ? mergeBranchesWithGithubPrs(options.branches) : [];
 
-  for (const branch of options.branches) {
-    const ref = resolveBranchRef(branch);
-    runGit(["merge", "--no-ff", "--no-edit", ref]);
+  if (!options.githubPrs) {
+    for (const branch of options.branches) {
+      const ref = resolveBranchRef(branch);
+      runGit(["merge", "--no-ff", "--no-edit", ref]);
+    }
   }
 
   if (options.runChecks) {
@@ -65,6 +76,7 @@ function prepareMep(options: Options) {
   const mepPath = writeMepLog({
     baseCommit,
     branches: options.branches,
+    githubPrs,
     previousVersion,
     tag,
     version: nextVersion,
@@ -115,6 +127,7 @@ function parseArgs(mode: Options["mode"], args: string[]): Options {
   const options: Options = {
     branches: [],
     createGithubRelease: false,
+    githubPrs: false,
     mode,
     runChecks: true,
   };
@@ -134,6 +147,8 @@ function parseArgs(mode: Options["mode"], args: string[]): Options {
       options.runChecks = false;
     } else if (name === "--github-release") {
       options.createGithubRelease = true;
+    } else if (name === "--github-prs") {
+      options.githubPrs = true;
     } else if (arg.startsWith("-")) {
       fail(`Unknown option: ${arg}`);
     } else if (mode === "prepare") {
@@ -143,6 +158,14 @@ function parseArgs(mode: Options["mode"], args: string[]): Options {
 
   options.branches = [...new Set(options.branches.filter(Boolean))];
   return options;
+}
+
+function validateBranches(branches: string[]) {
+  for (const branch of branches) {
+    if (!/^[A-Za-z0-9._/-]+$/.test(branch)) {
+      fail(`Invalid branch name: ${branch}`);
+    }
+  }
 }
 
 function splitBranches(value: string | undefined) {
@@ -205,6 +228,146 @@ function resolveBranchRef(branch: string) {
   fail(`Branch not found locally or on origin: ${branch}`);
 }
 
+function mergeBranchesWithGithubPrs(branches: string[]) {
+  ensureGhAvailable();
+  ensureGhAuthenticated();
+
+  const mergedPrs: GithubPr[] = [];
+
+  for (const branch of branches) {
+    ensureRemoteBranch(branch);
+    const pr = ensurePullRequest(branch);
+    runCommand("gh", ["pr", "merge", String(pr.number), "--merge"]);
+    runGit(["fetch", "origin"]);
+    runGit(["pull", "--ff-only", "origin", "master"]);
+    mergedPrs.push(pr);
+  }
+
+  return mergedPrs;
+}
+
+function ensureGhAvailable() {
+  const result = spawnSync("gh", ["--version"], {
+    cwd: root,
+    encoding: "utf8",
+    shell: true,
+    stdio: "ignore",
+  });
+
+  if (result.status !== 0) {
+    fail("GitHub PR mode requires the GitHub CLI. Install gh and authenticate before retrying.");
+  }
+}
+
+function ensureGhAuthenticated() {
+  const result = spawnSync("gh", ["auth", "status"], {
+    cwd: root,
+    encoding: "utf8",
+    shell: true,
+    stdio: "ignore",
+  });
+
+  if (result.status !== 0) {
+    fail("GitHub CLI is not authenticated. Run gh auth login before using --github-prs.");
+  }
+}
+
+function ensureRemoteBranch(branch: string) {
+  const remote = spawnSync("git", gitArgs(["rev-parse", "--verify", `origin/${branch}`]), {
+    cwd: root,
+    encoding: "utf8",
+    shell: true,
+    stdio: "ignore",
+  });
+
+  if (remote.status === 0) return;
+
+  const local = spawnSync("git", gitArgs(["rev-parse", "--verify", branch]), {
+    cwd: root,
+    encoding: "utf8",
+    shell: true,
+    stdio: "ignore",
+  });
+
+  if (local.status !== 0) {
+    fail(`Branch not found locally or on origin: ${branch}`);
+  }
+
+  runGit(["push", "-u", "origin", branch]);
+}
+
+function ensurePullRequest(branch: string) {
+  const existing = ghJson<GithubPr[]>([
+    "pr",
+    "list",
+    "--head",
+    branch,
+    "--base",
+    "master",
+    "--state",
+    "open",
+    "--json",
+    "number,url",
+  ]);
+
+  if (existing[0]) {
+    return {
+      branch,
+      number: existing[0].number,
+      url: existing[0].url,
+    };
+  }
+
+  const title = `MEP: merge ${branch}`;
+  const body = `Automated MEP pull request for branch \`${branch}\`.`;
+
+  runCommand("gh", [
+    "pr",
+    "create",
+    "--base",
+    "master",
+    "--head",
+    branch,
+    "--title",
+    title,
+    "--body",
+    body,
+  ]);
+
+  const created = ghJson<GithubPr[]>([
+    "pr",
+    "list",
+    "--head",
+    branch,
+    "--base",
+    "master",
+    "--state",
+    "open",
+    "--json",
+    "number,url",
+  ]);
+
+  if (!created[0]) {
+    fail(`Unable to find created pull request for ${branch}.`);
+  }
+
+  return {
+    branch,
+    number: created[0].number,
+    url: created[0].url,
+  };
+}
+
+function ghJson<T>(args: string[]) {
+  const output = execFileSync("gh", args, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
+
+  return JSON.parse(output || "[]") as T;
+}
+
 function readPackageVersion() {
   return JSON.parse(readFileSync(packageJsonPath, "utf8")).version as string;
 }
@@ -242,12 +405,14 @@ function updatePackageVersion(version: string) {
 function writeMepLog({
   baseCommit,
   branches,
+  githubPrs,
   previousVersion,
   tag,
   version,
 }: {
   baseCommit: string;
   branches: string[];
+  githubPrs: GithubPr[];
   previousVersion: string;
   tag: string;
   version: string;
@@ -280,6 +445,14 @@ TODO: regrouper les changements par domaine fonctionnel.
 
 ${branches.map((branch) => `- \`${branch}\``).join("\n")}
 
+## Pull requests GitHub
+
+${
+  githubPrs.length
+    ? githubPrs.map((pr) => `- #${pr.number} \`${pr.branch}\` - ${pr.url}`).join("\n")
+    : "- Non utilise: preparation locale sans GitHub PRs."
+}
+
 ## Commits inclus
 
 \`\`\`text
@@ -307,6 +480,7 @@ ${diffStat || "No diff found."}
 
 - Le push du tag \`${tag}\` declenche le workflow GitHub Actions \`Deploy VPS\`.
 - Si une GitHub Release est souhaitee, lancer \`pnpm mep:publish -- --version ${version} --github-release\`.
+- Mode GitHub PRs: \`${githubPrs.length ? "oui" : "non"}\`.
 `,
   );
 
