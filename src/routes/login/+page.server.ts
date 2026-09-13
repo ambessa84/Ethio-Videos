@@ -44,7 +44,7 @@ export const load = async ({ url }) => {
 };
 
 export const actions = {
-  default: async ({ request }) => {
+  requestOtp: async ({ request }) => {
     const formData = await request.formData();
     const result = emailSchema.safeParse(Object.fromEntries(formData));
     const redirectTo = safeRedirectPath(formData.get("redirectTo"), "/");

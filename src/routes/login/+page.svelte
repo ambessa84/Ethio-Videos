@@ -49,7 +49,7 @@
         <button class="button" type="submit">Valider mon email</button>
       </form>
     {:else}
-      <form method="POST" class="email-form">
+      <form method="POST" action="?/requestOtp" class="email-form">
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <label class="form-row">
           <span class="label">Email</span>
