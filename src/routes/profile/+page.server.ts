@@ -6,8 +6,19 @@ import {
   missingProfileFields,
 } from "$lib/server/user-profile";
 import { safeRedirectPath } from "$lib/server/redirect";
+import { getLocalizedStaticPath, normalizeSiteLanguage } from "$lib/i18n";
 
-export const load = async ({ locals, url }) => {
+function profileContext(params?: { lang?: string }) {
+  const language = params?.lang ? normalizeSiteLanguage(params.lang) : null;
+
+  return {
+    defaultRedirectTo: language ? `/${language}` : "/",
+    loginPath: language ? getLocalizedStaticPath(language, "login") : "/login",
+  };
+}
+
+export const load = async ({ locals, params, url }) => {
+  const context = profileContext(params);
   const session = await locals.auth();
   const sessionUser = session?.user as
     | { id?: string; email?: string | null }
@@ -18,7 +29,7 @@ export const load = async ({ locals, url }) => {
   if (!userId && !email) {
     throw redirect(
       303,
-      `/login?redirectTo=${encodeURIComponent(url.pathname + url.search)}`,
+      `${context.loginPath}?redirectTo=${encodeURIComponent(url.pathname + url.search)}`,
     );
   }
 
@@ -61,27 +72,34 @@ export const load = async ({ locals, url }) => {
       });
 
   if (!user) {
-    throw redirect(303, "/login");
+    throw redirect(303, context.loginPath);
   }
 
   return {
     missingFields: missingProfileFields(user),
-    redirectTo: safeRedirectPath(url.searchParams.get("redirectTo"), "/"),
+    redirectTo: safeRedirectPath(
+      url.searchParams.get("redirectTo"),
+      context.defaultRedirectTo,
+    ),
     user,
   };
 };
 
 export const actions = {
-  default: async ({ locals, request }) => {
+  default: async ({ locals, params, request }) => {
+    const context = profileContext(params);
     const session = await locals.auth();
     const sessionUser = session?.user as { id?: string } | undefined;
 
     if (!sessionUser?.id) {
-      throw redirect(303, "/login");
+      throw redirect(303, context.loginPath);
     }
 
     const formData = await request.formData();
-    const redirectTo = safeRedirectPath(formData.get("redirectTo"), "/");
+    const redirectTo = safeRedirectPath(
+      formData.get("redirectTo"),
+      context.defaultRedirectTo,
+    );
     const intent = String(formData.get("intent") ?? "save");
     const result = editableUserProfileSchema.safeParse(
       Object.fromEntries(formData),

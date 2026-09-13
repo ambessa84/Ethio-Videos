@@ -63,8 +63,8 @@
   });
   let accountHref = $derived(
     $page.data.isAuthenticated
-      ? "/profile"
-      : `/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`,
+      ? getLocalizedStaticPath(currentLanguage, "profile")
+      : `${getLocalizedStaticPath(currentLanguage, "login")}?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`,
   );
   const footerLanguages = ["fr", "en", "am"] as const;
   const shouldLoadAdsense =

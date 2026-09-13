@@ -33,6 +33,8 @@ describe("localized paths", () => {
     expect(getLocalizedStaticPath("fr", "trending")).toBe("/fr/tendances");
     expect(getLocalizedStaticPath("fr", "latest")).toBe("/fr/dernieres-videos");
     expect(getLocalizedStaticPath("am", "search")).toBe("/am/felgi");
+    expect(getLocalizedStaticPath("fr", "login")).toBe("/fr/login");
+    expect(getLocalizedStaticPath("am", "profile")).toBe("/am/profile");
   });
 
   it("builds translated taxonomy paths", () => {
@@ -54,6 +56,7 @@ describe("localized paths", () => {
     expect(getLocalizedPath("am", "/fr/etiquettes/music")).toBe(
       "/am/miliktoch/music",
     );
+    expect(getLocalizedPath("fr", "/en/profile")).toBe("/fr/profile");
   });
 
   it("adds a language prefix to legacy paths", () => {

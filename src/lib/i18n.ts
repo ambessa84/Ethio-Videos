@@ -255,6 +255,8 @@ export const routeSegments = {
     channels: "chaines",
     search: "recherche",
     news: "actualites",
+    login: "login",
+    profile: "profile",
     submitVideo: "proposer-video",
     newsletter: "lettre-info",
   },
@@ -267,6 +269,8 @@ export const routeSegments = {
     channels: "channels",
     search: "search",
     news: "news",
+    login: "login",
+    profile: "profile",
     submitVideo: "submit-video",
     newsletter: "newsletter",
   },
@@ -279,6 +283,8 @@ export const routeSegments = {
     channels: "channeloch",
     search: "felgi",
     news: "zena",
+    login: "login",
+    profile: "profile",
     submitVideo: "video-lak",
     newsletter: "newsletter",
   },
@@ -319,6 +325,8 @@ export function getLocalizedStaticPath(
     | "trending"
     | "search"
     | "news"
+    | "login"
+    | "profile"
     | "submitVideo"
     | "newsletter",
 ) {
