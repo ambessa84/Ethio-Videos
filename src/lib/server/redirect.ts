@@ -12,10 +12,13 @@ export function safeRedirectPath(
   return path || fallback;
 }
 
-export function profileRedirectPath(redirectTo: string) {
+export function profileRedirectPath(
+  redirectTo: string,
+  profilePath = "/profile",
+) {
   const params = new URLSearchParams({
     redirectTo,
   });
 
-  return `/profile?${params.toString()}`;
+  return `${profilePath}?${params.toString()}`;
 }

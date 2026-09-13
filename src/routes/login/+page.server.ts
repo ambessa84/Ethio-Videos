@@ -8,6 +8,7 @@ import {
   profileRedirectPath,
   safeRedirectPath,
 } from "$lib/server/redirect";
+import { getLocalizedStaticPath, normalizeSiteLanguage } from "$lib/i18n";
 
 const emailSchema = z.object({
   email: z.string().trim().email("A valid email is required.").max(160),
@@ -33,21 +34,40 @@ function socialProviders() {
   ].filter((provider) => provider !== null);
 }
 
-export const load = async ({ url }) => {
-  const redirectTo = safeRedirectPath(url.searchParams.get("redirectTo"), "/");
+function loginContext(params?: { lang?: string }) {
+  const language = params?.lang ? normalizeSiteLanguage(params.lang) : null;
+
+  return {
+    defaultRedirectTo: language ? `/${language}` : "/",
+    profilePath: language
+      ? getLocalizedStaticPath(language, "profile")
+      : "/profile",
+  };
+}
+
+export const load = async ({ params, url }) => {
+  const context = loginContext(params);
+  const redirectTo = safeRedirectPath(
+    url.searchParams.get("redirectTo"),
+    context.defaultRedirectTo,
+  );
 
   return {
     redirectTo,
-    profileRedirectTo: profileRedirectPath(redirectTo),
+    profileRedirectTo: profileRedirectPath(redirectTo, context.profilePath),
     socialProviders: socialProviders(),
   };
 };
 
 export const actions = {
-  requestOtp: async ({ request }) => {
+  requestOtp: async ({ params, request }) => {
+    const context = loginContext(params);
     const formData = await request.formData();
     const result = emailSchema.safeParse(Object.fromEntries(formData));
-    const redirectTo = safeRedirectPath(formData.get("redirectTo"), "/");
+    const redirectTo = safeRedirectPath(
+      formData.get("redirectTo"),
+      context.defaultRedirectTo,
+    );
 
     if (!result.success) {
       return fail(400, {
@@ -75,7 +95,7 @@ export const actions = {
       message: "Saisissez le code envoye a votre email.",
       email,
       redirectTo,
-      profileRedirectTo: profileRedirectPath(redirectTo),
+      profileRedirectTo: profileRedirectPath(redirectTo, context.profilePath),
       expiresAt: otp.expiresAt,
       debugCode: otp.debugCode,
     };
