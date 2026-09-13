@@ -68,9 +68,9 @@ function prepareMep(options: Options) {
   }
 
   if (options.runChecks) {
-    runCommand("pnpm", ["check"]);
-    runCommand("pnpm", ["test"]);
-    runCommand("pnpm", ["build-storybook"]);
+    runPackageManager(["check"]);
+    runPackageManager(["test"]);
+    runPackageManager(["build-storybook"]);
   }
 
   updatePackageVersion(nextVersion);
@@ -511,6 +511,16 @@ function runGit(args: string[]) {
   runCommand("git", gitArgs(args));
 }
 
+function runPackageManager(args: string[]) {
+  const npmExecPath = process.env.npm_execpath;
+  if (npmExecPath && /pnpm\.(cjs|mjs|js)$/i.test(npmExecPath)) {
+    runCommand(process.execPath, [npmExecPath, ...args]);
+    return;
+  }
+
+  runCommand(process.platform === "win32" ? "pnpm.cmd" : "pnpm", args);
+}
+
 function gitOutput(args: string[]) {
   return execFileSync("git", gitArgs(args), {
     cwd: root,
@@ -526,12 +536,22 @@ function gitArgs(args: string[]) {
 function runCommand(command: string, args: string[]) {
   const result = spawnSync(command, args, {
     cwd: root,
+    shell: shouldUseShell(command),
     stdio: "inherit",
   });
+
+  if (result.error) {
+    console.error(`Failed to run ${command}: ${result.error.message}`);
+    process.exit(1);
+  }
 
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
+}
+
+function shouldUseShell(command: string) {
+  return process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
 }
 
 function fail(message: string): never {
