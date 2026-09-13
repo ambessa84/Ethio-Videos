@@ -2,6 +2,10 @@
   let { data, form } = $props();
   const values = $derived((form?.values ?? {}) as Record<string, string>);
   const otpEmail = $derived((form?.email ?? values.email ?? "") as string);
+  const redirectTo = $derived((form?.redirectTo ?? data.redirectTo) as string);
+  const profileRedirectTo = $derived(
+    (form?.profileRedirectTo ?? data.profileRedirectTo) as string,
+  );
 </script>
 
 <svelte:head>
@@ -22,7 +26,7 @@
     {#if form?.success && otpEmail}
       <form method="POST" action="?/verify" class="email-form">
         <input type="hidden" name="providerId" value="email-otp" />
-        <input type="hidden" name="redirectTo" value="/profile" />
+        <input type="hidden" name="redirectTo" value={profileRedirectTo} />
         <label class="form-row">
           <span class="label">Email</span>
           <input class="input" type="email" name="email" value={otpEmail} readonly />
@@ -46,6 +50,7 @@
       </form>
     {:else}
       <form method="POST" class="email-form">
+        <input type="hidden" name="redirectTo" value={redirectTo} />
         <label class="form-row">
           <span class="label">Email</span>
           <input
@@ -66,7 +71,7 @@
         {#each data.socialProviders as provider}
           <form method="POST" action="?/social">
             <input type="hidden" name="providerId" value={provider.id} />
-            <input type="hidden" name="redirectTo" value="/profile" />
+            <input type="hidden" name="redirectTo" value={profileRedirectTo} />
             <button class="button secondary" type="submit">
               Continuer avec {provider.label}
             </button>

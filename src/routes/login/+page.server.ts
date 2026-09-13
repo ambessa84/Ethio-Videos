@@ -4,6 +4,10 @@ import { z } from "zod";
 import { signIn } from "../../auth";
 import { createEmailOtp } from "$lib/server/email-otp";
 import { prisma } from "$lib/server/prisma";
+import {
+  profileRedirectPath,
+  safeRedirectPath,
+} from "$lib/server/redirect";
 
 const emailSchema = z.object({
   email: z.string().trim().email("A valid email is required.").max(160),
@@ -29,14 +33,21 @@ function socialProviders() {
   ].filter((provider) => provider !== null);
 }
 
-export const load = async () => ({
-  socialProviders: socialProviders(),
-});
+export const load = async ({ url }) => {
+  const redirectTo = safeRedirectPath(url.searchParams.get("redirectTo"), "/");
+
+  return {
+    redirectTo,
+    profileRedirectTo: profileRedirectPath(redirectTo),
+    socialProviders: socialProviders(),
+  };
+};
 
 export const actions = {
   default: async ({ request }) => {
     const formData = await request.formData();
     const result = emailSchema.safeParse(Object.fromEntries(formData));
+    const redirectTo = safeRedirectPath(formData.get("redirectTo"), "/");
 
     if (!result.success) {
       return fail(400, {
@@ -63,6 +74,8 @@ export const actions = {
       success: true,
       message: "Saisissez le code envoye a votre email.",
       email,
+      redirectTo,
+      profileRedirectTo: profileRedirectPath(redirectTo),
       expiresAt: otp.expiresAt,
       debugCode: otp.debugCode,
     };

@@ -9,6 +9,7 @@
   );
   const accountLabel = $derived(user.email ?? "Social account");
   const values = $derived((form?.values ?? {}) as Record<string, string>);
+  const redirectTo = $derived((form?.redirectTo ?? data.redirectTo) as string);
   const birthDateValue = $derived(
     values.birthDate ??
       (user.birthDate
@@ -41,6 +42,7 @@
   {/if}
 
   <form method="POST" class="profile-form">
+    <input type="hidden" name="redirectTo" value={redirectTo} />
     <div class="form-grid">
       <label class="form-row">
         <span class="label">First name</span>
@@ -117,7 +119,17 @@
       />
     </label>
 
-    <button class="button" type="submit">Enregistrer</button>
+    <div class="profile-actions">
+      <button class="button secondary" name="intent" value="save" type="submit">
+        Enregistrer
+      </button>
+      <button class="button" name="intent" value="continue" type="submit">
+        Enregistrer et continuer
+      </button>
+      {#if redirectTo !== "/"}
+        <a class="skip-link" href={redirectTo}>Plus tard</a>
+      {/if}
+    </div>
   </form>
 
   <dl class="profile-details">
@@ -180,6 +192,19 @@
     display: grid;
     gap: 1rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .skip-link {
+    color: var(--ev-muted);
+    font-weight: 700;
+    text-decoration: none;
   }
 
   .avatar {

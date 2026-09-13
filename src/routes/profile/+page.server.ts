@@ -1,11 +1,12 @@
-import { fail, redirect } from "@sveltejs/kit";
+import { fail, isRedirect, redirect } from "@sveltejs/kit";
 import { prisma } from "$lib/server/prisma";
 import {
   editableUserProfileSchema,
   fullName,
 } from "$lib/server/user-profile";
+import { safeRedirectPath } from "$lib/server/redirect";
 
-export const load = async ({ locals }) => {
+export const load = async ({ locals, url }) => {
   const session = await locals.auth();
   const sessionUser = session?.user as
     | { id?: string; email?: string | null }
@@ -14,7 +15,10 @@ export const load = async ({ locals }) => {
   const email = sessionUser?.email;
 
   if (!userId && !email) {
-    throw redirect(303, "/register");
+    throw redirect(
+      303,
+      `/login?redirectTo=${encodeURIComponent(url.pathname + url.search)}`,
+    );
   }
 
   const user = userId
@@ -60,6 +64,7 @@ export const load = async ({ locals }) => {
   }
 
   return {
+    redirectTo: safeRedirectPath(url.searchParams.get("redirectTo"), "/"),
     user,
   };
 };
@@ -74,6 +79,8 @@ export const actions = {
     }
 
     const formData = await request.formData();
+    const redirectTo = safeRedirectPath(formData.get("redirectTo"), "/");
+    const intent = String(formData.get("intent") ?? "save");
     const result = editableUserProfileSchema.safeParse(
       Object.fromEntries(formData),
     );
@@ -81,6 +88,7 @@ export const actions = {
     if (!result.success) {
       return fail(400, {
         message: result.error.issues[0]?.message ?? "Invalid profile.",
+        redirectTo,
         values: Object.fromEntries(formData),
       });
     }
@@ -126,14 +134,22 @@ export const actions = {
         },
       });
 
+      if (intent === "continue") {
+        throw redirect(303, redirectTo);
+      }
+
       return {
         success: true,
         message: "Profil mis a jour.",
+        redirectTo,
         user,
       };
-    } catch {
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+
       return fail(409, {
         message: "This username is already used.",
+        redirectTo,
         values: Object.fromEntries(formData),
       });
     }
