@@ -68,4 +68,5 @@ export const actions = {
     };
   },
   verify: signIn,
+  social: signIn,
 };
