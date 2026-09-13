@@ -22,6 +22,7 @@ type GithubPr = {
 const root = process.cwd();
 const packageJsonPath = join(root, "package.json");
 const mepDir = join(root, "docs", "mep");
+const ghCommand = resolveGhCommand();
 
 main();
 
@@ -116,7 +117,7 @@ function publishMep(options: Options) {
   runGit(["push", "origin", tag]);
 
   if (options.createGithubRelease) {
-    runCommand("gh", ["release", "create", tag, "--notes-file", mepPath]);
+    runCommand(ghCommand, ["release", "create", tag, "--notes-file", mepPath]);
   }
 
   console.info("");
@@ -242,7 +243,7 @@ function mergeBranchesWithGithubPrs(branches: string[]) {
   for (const branch of branches) {
     ensureRemoteBranch(branch);
     const pr = ensurePullRequest(branch);
-    runCommand("gh", ["pr", "merge", String(pr.number), "--merge"]);
+    runCommand(ghCommand, ["pr", "merge", String(pr.number), "--merge"]);
     runGit(["fetch", "origin"]);
     runGit(["pull", "--ff-only", "origin", "master"]);
     mergedPrs.push(pr);
@@ -252,7 +253,7 @@ function mergeBranchesWithGithubPrs(branches: string[]) {
 }
 
 function ensureGhAvailable() {
-  const result = spawnSync("gh", ["--version"], {
+  const result = spawnSync(ghCommand, ["--version"], {
     cwd: root,
     encoding: "utf8",
     shell: true,
@@ -265,7 +266,7 @@ function ensureGhAvailable() {
 }
 
 function ensureGhAuthenticated() {
-  const result = spawnSync("gh", ["auth", "status"], {
+  const result = spawnSync(ghCommand, ["auth", "status"], {
     cwd: root,
     encoding: "utf8",
     shell: true,
@@ -326,7 +327,7 @@ function ensurePullRequest(branch: string) {
   const title = `MEP: merge ${branch}`;
   const body = `Automated MEP pull request for branch \`${branch}\`.`;
 
-  runCommand("gh", [
+  runCommand(ghCommand, [
     "pr",
     "create",
     "--base",
@@ -364,13 +365,26 @@ function ensurePullRequest(branch: string) {
 }
 
 function ghJson<T>(args: string[]) {
-  const output = execFileSync("gh", args, {
+  const output = execFileSync(ghCommand, args, {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 
   return JSON.parse(output || "[]") as T;
+}
+
+function resolveGhCommand() {
+  const localAppData = process.env.LOCALAPPDATA;
+  const userInstall = localAppData
+    ? join(localAppData, "Programs", "GitHub CLI", "bin", "gh.exe")
+    : undefined;
+
+  if (userInstall && existsSync(userInstall)) {
+    return userInstall;
+  }
+
+  return "gh";
 }
 
 function readPackageVersion() {
