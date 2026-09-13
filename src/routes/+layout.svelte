@@ -61,6 +61,11 @@
     en: languagePath("en"),
     am: languagePath("am"),
   });
+  let accountHref = $derived(
+    $page.data.isAuthenticated
+      ? "/profile"
+      : `/login?redirectTo=${encodeURIComponent($page.url.pathname + $page.url.search)}`,
+  );
   const footerLanguages = ["fr", "en", "am"] as const;
   const shouldLoadAdsense =
     env.PUBLIC_AD_PROVIDER === "adsense" &&
@@ -83,6 +88,9 @@
       <AppHeader
         brandHref={`/${currentLanguage}`}
         {navItems}
+        accountHref={accountHref}
+        accountLabel={$page.data.isAuthenticated ? "Compte" : "Connexion"}
+        accountVariant={$page.data.isAuthenticated ? "user" : "guest"}
         searchAction={getLocalizedStaticPath(currentLanguage, "search")}
         searchLabel={labels.search}
         searchPlaceholder={labels.searchPlaceholder}

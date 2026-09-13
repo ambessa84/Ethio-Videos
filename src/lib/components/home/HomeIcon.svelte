@@ -10,6 +10,7 @@
     | "sport"
     | "play"
     | "search"
+    | "user"
     | "chevron";
 
   let { name, size = 24 }: { name: IconName; size?: number } = $props();
@@ -55,6 +56,9 @@
     {:else if name === "search"}
       <circle cx="11" cy="11" r="6" />
       <path d="m16 16 4 4" />
+    {:else if name === "user"}
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c1.8-4 4.5-6 8-6s6.2 2 8 6" />
     {:else if name === "chevron"}
       <path d="m9 6 6 6-6 6" />
     {/if}
