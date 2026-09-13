@@ -134,6 +134,11 @@ function parseArgs(mode: Options["mode"], args: string[]): Options {
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
+
+    if (arg === "--") {
+      continue;
+    }
+
     const [name, inlineValue] = arg.split("=", 2);
     const nextValue = () => inlineValue ?? args[++index];
 
