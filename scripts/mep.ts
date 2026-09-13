@@ -375,10 +375,18 @@ function ghJson<T>(args: string[]) {
 }
 
 function resolveGhCommand() {
+  const userProfile = process.env.USERPROFILE;
   const localAppData = process.env.LOCALAPPDATA;
+  const userBinInstall = userProfile
+    ? join(userProfile, "bin", "gh.exe")
+    : undefined;
   const userInstall = localAppData
     ? join(localAppData, "Programs", "GitHub CLI", "bin", "gh.exe")
     : undefined;
+
+  if (userBinInstall && existsSync(userBinInstall)) {
+    return userBinInstall;
+  }
 
   if (userInstall && existsSync(userInstall)) {
     return userInstall;
