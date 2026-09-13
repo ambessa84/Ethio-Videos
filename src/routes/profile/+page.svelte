@@ -10,6 +10,7 @@
   const accountLabel = $derived(user.email ?? "Social account");
   const values = $derived((form?.values ?? {}) as Record<string, string>);
   const redirectTo = $derived((form?.redirectTo ?? data.redirectTo) as string);
+  const missingFields = $derived(form?.missingFields ?? data.missingFields ?? []);
   const birthDateValue = $derived(
     values.birthDate ??
       (user.birthDate
@@ -39,6 +40,22 @@
 
   {#if form?.message}
     <div class={form.success ? "success" : "alert"}>{form.message}</div>
+  {/if}
+
+  {#if missingFields.length}
+    <section class="completion-panel" aria-labelledby="completion-title">
+      <div>
+        <h2 id="completion-title">Completer mon profil</h2>
+        <p class="muted">
+          Ajoutez les informations restantes pour personnaliser votre compte.
+        </p>
+      </div>
+      <div class="missing-fields" aria-label="Champs manquants">
+        {#each missingFields as field}
+          <span>{field.label}</span>
+        {/each}
+      </div>
+    </section>
   {/if}
 
   <form method="POST" class="profile-form">
@@ -186,6 +203,36 @@
     display: grid;
     gap: 1rem;
     padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .completion-panel {
+    background: color-mix(in srgb, var(--ev-gold) 12%, var(--ev-white));
+    border: 1px solid color-mix(in srgb, var(--ev-gold) 45%, var(--ev-border));
+    border-radius: 8px;
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .completion-panel h2 {
+    font-size: 1.35rem;
+    margin: 0 0 0.35rem;
+  }
+
+  .missing-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .missing-fields span {
+    background: var(--ev-white);
+    border: 1px solid var(--ev-border);
+    border-radius: 999px;
+    color: var(--ev-ink);
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 0.35rem 0.65rem;
   }
 
   .form-grid {
