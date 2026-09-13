@@ -200,7 +200,6 @@ function ensureTagDoesNotExist(tag: string) {
   const local = spawnSync("git", ["rev-parse", "--verify", `refs/tags/${tag}`], {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
   if (local.status === 0) {
@@ -217,7 +216,6 @@ function resolveBranchRef(branch: string) {
   const local = spawnSync("git", ["rev-parse", "--verify", branch], {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
   if (local.status === 0) return branch;
@@ -226,7 +224,6 @@ function resolveBranchRef(branch: string) {
   const remote = spawnSync("git", ["rev-parse", "--verify", remoteRef], {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
   if (remote.status === 0) return remoteRef;
@@ -256,7 +253,6 @@ function ensureGhAvailable() {
   const result = spawnSync(ghCommand, ["--version"], {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
 
@@ -269,7 +265,6 @@ function ensureGhAuthenticated() {
   const result = spawnSync(ghCommand, ["auth", "status"], {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
 
@@ -282,7 +277,6 @@ function ensureRemoteBranch(branch: string) {
   const remote = spawnSync("git", gitArgs(["rev-parse", "--verify", `origin/${branch}`]), {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
 
@@ -291,7 +285,6 @@ function ensureRemoteBranch(branch: string) {
   const local = spawnSync("git", gitArgs(["rev-parse", "--verify", branch]), {
     cwd: root,
     encoding: "utf8",
-    shell: true,
     stdio: "ignore",
   });
 
@@ -533,7 +526,6 @@ function gitArgs(args: string[]) {
 function runCommand(command: string, args: string[]) {
   const result = spawnSync(command, args, {
     cwd: root,
-    shell: true,
     stdio: "inherit",
   });
 
