@@ -25,7 +25,8 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "news:import": "tsx scripts/import-news.ts",
-    "news:import:file": "tsx scripts/import-news-file.ts"
+    "news:import:file": "tsx scripts/import-news-file.ts",
+    "start": "node build"
   },
   "dependencies": {
     "@auth/sveltekit": "^1.11.2",
@@ -42,6 +43,7 @@
     "@changesets/cli": "^2.31.0",
     "@storybook/sveltekit": "^10.4.2",
     "@sveltejs/adapter-auto": "^3.0.0",
+    "@sveltejs/adapter-node": "^5.5.7",
     "@types/node": "^22.0.0",
     "prettier": "^3.3.0",
     "prettier-plugin-svelte": "^3.2.0",
