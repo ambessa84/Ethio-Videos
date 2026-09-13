@@ -1,5 +1,7 @@
 <script lang="ts">
-  let { data } = $props();
+  let { data, form } = $props();
+  const values = $derived((form?.values ?? {}) as Record<string, string>);
+  const otpEmail = $derived((form?.email ?? values.email ?? "") as string);
 </script>
 
 <svelte:head>
@@ -13,7 +15,51 @@
   </div>
 
   <div class="login-panel">
-    <a class="button" href="/register">Continuer avec email</a>
+    {#if form?.message}
+      <div class={form.success ? "success" : "alert"}>{form.message}</div>
+    {/if}
+
+    {#if form?.success && otpEmail}
+      <form method="POST" action="?/verify" class="email-form">
+        <input type="hidden" name="providerId" value="email-otp" />
+        <input type="hidden" name="redirectTo" value="/profile" />
+        <label class="form-row">
+          <span class="label">Email</span>
+          <input class="input" type="email" name="email" value={otpEmail} readonly />
+        </label>
+        <label class="form-row">
+          <span class="label">Code de validation</span>
+          <input
+            class="input"
+            name="code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            minlength="6"
+            maxlength="6"
+            required
+          />
+        </label>
+        {#if form.debugCode}
+          <p class="muted">Code de developpement : {form.debugCode}</p>
+        {/if}
+        <button class="button" type="submit">Valider mon email</button>
+      </form>
+    {:else}
+      <form method="POST" class="email-form">
+        <label class="form-row">
+          <span class="label">Email</span>
+          <input
+            class="input"
+            type="email"
+            name="email"
+            autocomplete="email"
+            value={values.email ?? ""}
+            required
+          />
+        </label>
+        <button class="button" type="submit">Continuer avec email</button>
+      </form>
+    {/if}
 
     {#if data.socialProviders.length}
       <div class="social-list">
@@ -72,6 +118,11 @@
     min-height: 3rem;
     padding-inline: 1rem;
     text-decoration: none;
+  }
+
+  .email-form {
+    display: grid;
+    gap: 1rem;
   }
 
   .button.secondary {
