@@ -35,7 +35,7 @@
 <header class="app-header">
   <a href={brandHref} class="brand" aria-label="EthioHub home">
     <img src="/brand/ethiohub-mark.svg" alt="" width="36" height="36" />
-    <span>Ethio</span><strong>Hub</strong>
+    <span class="brand-name"><span>Ethio</span><strong>Hub</strong></span>
   </a>
 
   <nav class="nav" aria-label="Navigation principale">
@@ -95,7 +95,11 @@
     flex: 0 0 auto;
   }
 
-  .brand strong {
+  .brand-name {
+    display: inline-flex;
+  }
+
+  .brand-name strong {
     color: var(--ev-gold);
     font-weight: 800;
   }
