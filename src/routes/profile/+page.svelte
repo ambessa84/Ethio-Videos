@@ -1,10 +1,20 @@
 <script lang="ts">
+  import { avatarOptions } from "$lib/user-profile";
+
   let { data } = $props();
-  const user = $derived(data.user);
+  let { form } = $props();
+  const user = $derived(form?.user ?? data.user);
   const displayName = $derived(
     user.name || [user.firstName, user.lastName].filter(Boolean).join(" "),
   );
   const accountLabel = $derived(user.email ?? "Social account");
+  const values = $derived((form?.values ?? {}) as Record<string, string>);
+  const birthDateValue = $derived(
+    values.birthDate ??
+      (user.birthDate
+        ? new Date(user.birthDate).toISOString().slice(0, 10)
+        : ""),
+  );
 </script>
 
 <svelte:head>
@@ -25,6 +35,90 @@
       <p class="muted">@{user.username} / {accountLabel}</p>
     </div>
   </div>
+
+  {#if form?.message}
+    <div class={form.success ? "success" : "alert"}>{form.message}</div>
+  {/if}
+
+  <form method="POST" class="profile-form">
+    <div class="form-grid">
+      <label class="form-row">
+        <span class="label">First name</span>
+        <input
+          class="input"
+          name="firstName"
+          autocomplete="given-name"
+          value={values.firstName ?? user.firstName ?? ""}
+        />
+      </label>
+
+      <label class="form-row">
+        <span class="label">Last name</span>
+        <input
+          class="input"
+          name="lastName"
+          autocomplete="family-name"
+          value={values.lastName ?? user.lastName ?? ""}
+        />
+      </label>
+    </div>
+
+    <div class="form-grid">
+      <label class="form-row">
+        <span class="label">Birth date</span>
+        <input class="input" type="date" name="birthDate" value={birthDateValue} />
+      </label>
+
+      <label class="form-row">
+        <span class="label">Email</span>
+        <input class="input" type="email" value={accountLabel} readonly />
+      </label>
+    </div>
+
+    <label class="form-row">
+      <span class="label">Address</span>
+      <input
+        class="input"
+        name="address"
+        autocomplete="street-address"
+        value={values.address ?? user.address ?? ""}
+      />
+    </label>
+
+    <div class="form-grid">
+      <label class="form-row">
+        <span class="label">Username</span>
+        <input
+          class="input"
+          name="username"
+          autocomplete="nickname"
+          value={values.username ?? user.username ?? ""}
+        />
+      </label>
+
+      <label class="form-row">
+        <span class="label">Avatar</span>
+        <select class="select" name="avatar" value={values.avatar ?? user.avatar ?? "classic"}>
+          {#each avatarOptions as avatar}
+            <option value={avatar}>{avatar}</option>
+          {/each}
+        </select>
+      </label>
+    </div>
+
+    <label class="form-row">
+      <span class="label">Profile photo URL</span>
+      <input
+        class="input"
+        type="url"
+        name="image"
+        autocomplete="photo"
+        value={values.image ?? user.image ?? ""}
+      />
+    </label>
+
+    <button class="button" type="submit">Enregistrer</button>
+  </form>
 
   <dl class="profile-details">
     <div>
@@ -71,6 +165,21 @@
     display: flex;
     gap: 1rem;
     padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .profile-form {
+    background: var(--ev-white);
+    border: 1px solid var(--ev-border);
+    border-radius: 8px;
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .form-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .avatar {
@@ -127,5 +236,16 @@
 
   dd {
     margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .profile-summary {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
