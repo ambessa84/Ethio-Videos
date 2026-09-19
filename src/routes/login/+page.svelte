@@ -9,13 +9,13 @@
 </script>
 
 <svelte:head>
-  <title>Connexion | EthioVideos</title>
+  <title>Connexion | EthioHub</title>
 </svelte:head>
 
 <section class="login-page">
   <div class="login-heading">
     <h1>Connexion</h1>
-    <p class="muted">Connectez-vous pour retrouver votre profil EthioVideos.</p>
+    <p class="muted">Connectez-vous pour retrouver votre profil EthioHub.</p>
   </div>
 
   <div class="login-panel">

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-labelledby="title desc">
+  <title id="title">EthioHub</title>
+  <desc id="desc">EthioHub logo with an eye, a play symbol, and the Ethiopian colors.</desc>
+  <g transform="translate(4 4) scale(1.16)">
+    <path d="M14 18h31c20 0 33 13 33 34v30" fill="none" stroke="#050606" stroke-width="11" stroke-linejoin="round"/>
+    <path d="M52 18c20 2 31 16 31 36v28" fill="none" stroke="#078930" stroke-width="7"/>
+    <path d="M62 18c19 5 28 19 28 38v26" fill="none" stroke="#fcd116" stroke-width="7"/>
+    <path d="M72 20c16 8 20 23 20 39v23" fill="none" stroke="#da121a" stroke-width="7"/>
+    <path d="M8 58c10-15 24-23 39-23 16 0 30 8 40 23-10 15-24 23-40 23-15 0-29-8-39-23Z" fill="#fff" stroke="#050606" stroke-width="7" stroke-linejoin="round"/>
+    <circle cx="47" cy="58" r="15" fill="#050606"/>
+    <path d="m43 49 12 9-12 9Z" fill="#fff9ed"/>
+  </g>
+  <text x="126" y="74" fill="#050606" font-family="Arial Black, Arial, sans-serif" font-size="58" font-weight="900" letter-spacing="0">EthioHub</text>
+</svg>

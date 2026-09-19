@@ -7,13 +7,13 @@
 </script>
 
 <svelte:head>
-  <title>Create account | EthioVideos</title>
+  <title>Create account | EthioHub</title>
 </svelte:head>
 
 <section class="account-page">
   <div class="account-heading">
     <h1>Create account</h1>
-    <p class="muted">Create your EthioVideos profile.</p>
+    <p class="muted">Create your EthioHub profile.</p>
   </div>
 
   {#if form?.message}

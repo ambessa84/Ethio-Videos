@@ -105,7 +105,7 @@
   <footer class="footer">
     <div class="container footer-inner">
       <div>
-        <p>© 2026 EthioVideos. {labels.videosEmbedded}</p>
+        <p>© 2026 EthioHub. {labels.videosEmbedded}</p>
         <p class="footer-links">
           <a href={getLocalizedStaticPath(currentLanguage, "newsletter")}>
             {labels.newsletter}
