@@ -34,8 +34,7 @@
 
 <header class="app-header">
   <a href={brandHref} class="brand" aria-label="EthioHub home">
-    <img src="/brand/ethiohub-mark.svg" alt="" width="36" height="36" />
-    <span class="brand-name"><span>Ethio</span><strong>Hub</strong></span>
+    <img src="/brand/ethiohub-logo.svg" alt="" width="154" height="44" />
   </a>
 
   <nav class="nav" aria-label="Navigation principale">
@@ -79,29 +78,15 @@
 
   .brand {
     align-items: center;
-    color: var(--ev-green);
     display: inline-flex;
-    gap: 0.55rem;
-    font-family: var(--ev-font);
-    font-size: clamp(1.4rem, 2vw, 1.75rem);
-    font-weight: 800;
-    letter-spacing: 0;
     text-decoration: none;
-    white-space: nowrap;
   }
 
   .brand img {
     display: block;
     flex: 0 0 auto;
-  }
-
-  .brand-name {
-    display: inline-flex;
-  }
-
-  .brand-name strong {
-    color: var(--ev-gold);
-    font-weight: 800;
+    height: auto;
+    width: clamp(8.5rem, 13vw, 9.625rem);
   }
 
   .nav {
